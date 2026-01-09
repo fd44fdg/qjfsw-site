@@ -436,12 +436,13 @@
     }
 
     // Fixed locations for navigation (can revisit, preserves dialogue)
+    // Fixed locations for navigation (with separate dialogue history)
     const LOCATIONS = [
-        { id: 'start', name: '车厢', bg: '列车差分1.png', npc: null },
-        { id: 'inspector_area', name: '检票员', bg: '列车差分2.png', npc: '检票员差分1.png', npcType: 'inspector' },
-        { id: 'anomaly_area', name: '异常乘客', bg: '列车差分3.png', npc: '异常乘客差分1.png', npcType: 'anomaly' },
-        { id: 'silent_area', name: '沉默乘客', bg: '列车差分2.png', npc: '沉默乘客.png', npcType: 'silent' },
-        { id: 'corridor', name: '过道', bg: 'corridor_view.png', npc: null }
+        { id: 'start', name: '车厢', bg: '列车差分1.png', npc: null, defaultSceneId: 'start', savedHTML: null },
+        { id: 'inspector_area', name: '检票员', bg: '列车差分2.png', npc: '检票员差分1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
+        { id: 'anomaly_area', name: '异常乘客', bg: '列车差分3.png', npc: '异常乘客差分1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
+        { id: 'silent_area', name: '沉默乘客', bg: '列车差分2.png', npc: '沉默乘客.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
+        { id: 'corridor', name: '过道', bg: 'corridor_view.png', npc: null, defaultSceneId: 'corridor_01', savedHTML: null }
     ];
     let currentLocationIndex = 0;
 
@@ -453,10 +454,15 @@
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // 10% Chance for Random Event
+        // 1. Save current dialogue to current location (if valid)
+        const currentLoc = LOCATIONS[currentLocationIndex];
+        if (currentLoc) {
+            currentLoc.savedHTML = DOM.sceneText.innerHTML;
+        }
+
+        // 10% Chance for Random Event (skip if already in event)
         if (Math.random() < 0.1) {
             const eventId = RANDOM_EVENTS[randomInt(0, RANDOM_EVENTS.length - 1)];
-            // Only trigger if not already in an event (simple check)
             if (!worldState.currentSceneId.startsWith('event_')) {
                 worldState.sceneCount++;
                 advanceToNextScene(eventId, true);
@@ -497,6 +503,32 @@
             // Update worldState for AI context
             worldState.currentSceneId = loc.id;
             saveState();
+
+            // RESTORE DIALOGUE
+            if (loc.savedHTML) {
+                // Restore saved history
+                DOM.sceneText.innerHTML = loc.savedHTML;
+                DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
+
+                // Restore default choices for this location so user isn't stuck
+                const defaultScene = scenes.find(s => s.id === loc.defaultSceneId);
+                if (defaultScene) {
+                    renderChoices(defaultScene.choices);
+                } else {
+                    renderChoices([]);
+                }
+            } else {
+                // First visit: Load default scene text
+                const defaultScene = scenes.find(s => s.id === loc.defaultSceneId);
+                if (defaultScene) {
+                    const text = processText(defaultScene.text);
+                    typewriter(DOM.sceneText, `<p>${text}</p>`);
+                    renderChoices(defaultScene.choices);
+                } else {
+                    DOM.sceneText.innerHTML = '<p>...</p>';
+                    renderChoices([]);
+                }
+            }
 
             DOM.backgroundLayer.classList.remove('fade-out');
             DOM.npcLayer.classList.remove('fade-out');
