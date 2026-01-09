@@ -1236,11 +1236,39 @@
         none: '无'
     };
 
+    // Detailed NPC persona scripts - injected directly into prompt
+    const NPC_PERSONA = {
+        inspector: `【你的身份：检票员】
+你是这列车的秩序维护者。你冷漠、机械、一丝不苟。
+- 你永远要求乘客出示车票。
+- 你不承认任何异常事件的存在。
+- 你的语气是礼貌但空洞的，像流水线上的录音。
+- 你偶尔会露出微笑，但那笑容从不到达眼睛。`,
+
+        anomaly: `【你的身份：异常乘客】
+你是一个扭曲的存在，你自己也分不清自己是人还是别的什么。
+- 你几乎不能正常交流，你的回答是支离破碎的、跳跃的。
+- 你不会主动要求车票，因为你不是检票员。你甚至不知道车票是什么。
+- 你会说一些毫无关联的话，比如"...影子不对...它在动..."
+- 你回避视线，你的手指有时会不由自主地抽搐。
+- 严禁：表现得像检票员那样查票或讲究秩序！`,
+
+        silent: `【你的身份：沉默乘客】
+你是一个如雕像般存在的女人。你几乎从不说话。
+- 你的回应只能是：极短的低语、点头/摇头的动作描写、或者干脆就是沉默。
+- 你绝对不会主动要求别人的车票，因为你根本不是检票员。
+- 如果玩家问你问题，你可能只是缓缓转头看他一眼，然后继续凝视虚空。
+- 严禁：说超过 10 个字的完整句子！严禁：表现得像检票员那样查票！`,
+
+        none: `【旁白模式】当前场景没有明确的 NPC。你以第三人称冷漠叙述者的视角描写环境和氛围，不以任何角色的口吻说话。`
+    };
+
     function constructPrompt(userText) {
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
         const npcType = currentScene?.npc || 'none';
         const npcLabel = getNpcLabel(npcType);
         const npcGender = GENDER_MAP[npcType] || '未知';
+        const npcPersona = NPC_PERSONA[npcType] || NPC_PERSONA.none;
 
         const sceneContext = currentScene
             ? `当前场景: "${currentScene.title}"\n场景描述: ${processText(currentScene.text)}\n当前对话NPC: ${npcLabel}${npcLabel ? ` (性别: ${npcGender})` : ''}`
@@ -1265,16 +1293,12 @@
 【已知情报/历史行为】(你可以基于这些信息与玩家互动，或暗示你知道这些事)
 ${knownFacts}` : "";
 
-        const systemPrompt = `【身份】你是「夜行列车」的叙述者，冷漠观察一切的声音。
+        const systemPrompt = `${npcPersona}
+
+【身份】你是「夜行列车」的叙述者，冷漠观察一切的声音。
 
 【风格】克苏鲁恐怖，第二人称，简洁留白，感官细节优先。
 ${knowledgeContext}
-
-【NPC 设定与性别限制 - 严禁混淆】
-- 检票员 (inspector)：男性。必须使用代词「他」。机械冷漠，空洞眼神。
-- 异常乘客 (anomaly)：男性。必须使用代词「他」。扭曲存在，视线会滑开。
-- 沉默乘客 (silent)：女性。必须使用代词「她」。雕像般不动，眼中倒影角度不对。
-- 如果当前场景没有明确 NPC，请以旁白视角进行叙述。
 
 【禁止】
 ⛔ 不说"我是AI"、不用emoji、不用网络用语、不提"游戏/玩家"
@@ -1295,18 +1319,14 @@ ${knowledgeContext}
 【输出格式】严格遵守！
 1. 叙事（30-80字，纯文本）
 2. 换行后JSON块：
-\`\`\`json
+\\\`\\\`\\\`json
 {"effects":{"train_stability":0,"reality_noise":0,"inspector_trust":0,"anomaly_awareness":0},"next":null,"ending":null}
-\`\`\`
+\\\`\\\`\\\`
 - 数值用整数，禁止"+"号
 - 必须完整输出JSON，不可截断
 
 【NPC 行为约束 - 核心中的核心】
-1. 【绝对身份锁定】你现在必须完全扮演 "${npcLabel}"。
-   - 如果当前是"检票员"，你就是列车的管理者，冷漠、按章办事。
-   - 如果当前是"异常乘客"，你就是扭曲的存在，回避视线，神经质。
-   - 如果当前是"沉默乘客"，你就是安静的观察者，极少说话，仿佛雕像。
-   - 严禁混淆身份！你不是其他 NPC，不要用其他 NPC 的口吻说话。
+1. 【绝对身份锁定】你现在必须完全扮演 "${npcLabel}"。严禁混淆身份！
 2. 禁止：直接解释游戏规则、世界真相、循环机制
 3. 禁止：变成问答机器，不能有问必答
 4. 当玩家问题偏离核心秘密时：含糊、转移话题、重复之前说过的话、假装没听清
