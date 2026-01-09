@@ -588,7 +588,7 @@
         const isDialogue = choice.type === 'dialogue' || (!choice.type && hasQuotes);
         const isEvent = choice.type === 'event';
         const isNavigate = choice.type === 'navigate';
-        const isExplicitAction = choice.type === 'action' && choice.next;
+        const isAction = choice.type === 'action';  // Always triggers scene transition
 
         // Dialogue and Event: Send to AI, no scene change
         if (isDialogue || isEvent) {
@@ -602,8 +602,8 @@
             return;  // AI handles response, no scene switch
         }
 
-        // Navigate or Explicit Action: Apply effects and switch scene
-        if (isNavigate || isExplicitAction) {
+        // Navigate or Action: Apply effects and switch scene
+        if (isNavigate || isAction) {
             if (choice.effects) applyEffects(choice.effects);
             if (choice.setFlags) Object.assign(worldState.flags, choice.setFlags);
             worldState.sceneCount++;
