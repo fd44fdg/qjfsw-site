@@ -609,7 +609,8 @@
         const imgPath = ASSET_PATHS.train + bgName;
         const img = new Image();
         img.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(img); };
-        img.onerror = () => { DOM.backgroundLayer.innerHTML = `<div class="placeholder-bg">${bgName}</div>`; };
+        // On error, just show empty black background (better than ugly text)
+        img.onerror = () => { DOM.backgroundLayer.innerHTML = ''; };
         img.src = imgPath;
     }
 
@@ -630,7 +631,8 @@
     }
 
     function getNpcLabel(npcType) {
-        const labels = { inspector: '检票员', anomaly: '异常乘客', silent: '沉默乘客', none: '' };
+        if (!npcType || npcType === 'none') return '';
+        const labels = { inspector: '检票员', anomaly: '异常乘客', silent: '沉默乘客' };
         return labels[npcType] || npcType || '';
     }
 

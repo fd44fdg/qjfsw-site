@@ -345,6 +345,23 @@ h3,
     font-weight: bold;
 }
 
+.dialog-header .scene-npc:empty {
+    display: none;
+}
+
+/* Hide ugly broken image icons/text */
+img:-moz-loading {
+    visibility: hidden;
+}
+
+img:-moz-broken {
+    visibility: hidden;
+}
+
+img:not([src]) {
+    visibility: hidden;
+}
+
 /* Choices Panel - Right Side */
 /* Legacy .text-panel removed - now using .dialog-overlay */
 
