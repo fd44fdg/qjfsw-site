@@ -654,5 +654,68 @@
         "ending": null
       }
     ]
+  },
+  {
+    "id": "event_glitch",
+    "title": "错乱时刻",
+    "npc": "none",
+    "background": "列车差分4.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "灯光突然剧烈闪烁。在每一次明暗交替的瞬间，车厢的布局似乎都在改变。座位变成了墓碑，扶手变成了枯骨...然后又瞬间变回原样。",
+    "choices": [
+      {
+        "label": "紧闭双眼",
+        "effects": {
+          "train_stability": 5,
+          "anomaly_awareness": -5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "努力观察细节",
+        "type": "event",
+        "effects": {
+          "anomaly_awareness": 10,
+          "reality_noise": 10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "event_whisper",
+    "title": "耳语",
+    "npc": "none",
+    "background": "corridor_view.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "并没有人说话，但你的脑海中响起了无数重叠的耳语声。所有的声音都在重复同一个词：'醒来'。",
+    "choices": [
+      {
+        "label": "聆听声音",
+        "effects": {
+          "reality_noise": 15,
+          "anomaly_awareness": 10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "大声呵斥",
+        "type": "event",
+        "effects": {
+          "train_stability": -5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
   }
 ]

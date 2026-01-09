@@ -53,7 +53,7 @@
         normal_arrival: {
             title: '普通到站',
             description: '列车缓缓停靠。你下车，站在陌生的站台上。身后的列车门关闭，你知道自己很快会再次登车。',
-            condition: (state) => state.sceneCount >= 5
+            condition: (state) => state.sceneCount >= 50
         },
         turn_limit: {
             title: '列车到站',
@@ -445,10 +445,24 @@
     ];
     let currentLocationIndex = 0;
 
+    // Random Events
+    const RANDOM_EVENTS = ['event_glitch', 'event_whisper'];
+
     // Navigate between fixed locations (preserves dialogue)
     function navigateScene(direction) {
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
+
+        // 10% Chance for Random Event
+        if (Math.random() < 0.1) {
+            const eventId = RANDOM_EVENTS[randomInt(0, RANDOM_EVENTS.length - 1)];
+            // Only trigger if not already in an event (simple check)
+            if (!worldState.currentSceneId.startsWith('event_')) {
+                worldState.sceneCount++;
+                advanceToNextScene(eventId, true);
+                return;
+            }
+        }
 
         // Calculate new index
         if (direction === 'prev') {
@@ -1014,6 +1028,28 @@
         DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
     }
 
+    // Flag descriptions for AI context (Shared Knowledge)
+    const FLAG_DESCRIPTIONS = {
+        met_inspector: "玩家已经见过检票员。",
+        stared_inspector: "玩家曾直视检票员的眼睛，引发了警觉。",
+        confused_destination: "玩家对目的地表明了困惑。",
+        broke_loop_illusion: "玩家试图打破循环的幻象。",
+        approached_anomaly: "玩家主动接近了异常乘客。",
+        watched_anomaly: "玩家曾远远观察异常乘客。",
+        questioned_anomaly: "玩家询问了异常乘客的身份。",
+        touched_anomaly: "玩家与异常乘客有过肢体接触。",
+        denied_reality: "玩家试图否认眼前的异常现实。",
+        talked_to_silent: "玩家尝试与沉默乘客搭话。",
+        sat_with_silent: "玩家坐在沉默乘客身边。",
+        silent_acknowledged: "沉默乘客对玩家有了回应。",
+        saw_note: "玩家发现了隐藏的纸条。",
+        has_note: "玩家持有写着真相的纸条。",
+        destroyed_note: "玩家销毁了纸条。",
+        betrayed_self: "玩家把纸条交给了检票员。",
+        mirror_contact: "玩家与窗外的倒影有过互动。",
+        broke_boundary: "玩家曾试图敲破车窗离开。"
+    };
+
     function constructPrompt(userText) {
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
         const npcLabel = getNpcLabel(currentScene?.npc);
@@ -1031,9 +1067,20 @@
 - 异常觉察: ${worldState.anomaly_awareness}
         `.trim();
 
+        // Build known facts from flags
+        const knownFacts = Object.entries(worldState.flags)
+            .filter(([key, value]) => value && FLAG_DESCRIPTIONS[key])
+            .map(([key, value]) => `- ${FLAG_DESCRIPTIONS[key]}`)
+            .join('\n');
+
+        const knowledgeContext = knownFacts ? `
+【已知情报/历史行为】(你可以基于这些信息与玩家互动，或暗示你知道这些事)
+${knownFacts}` : "";
+
         const systemPrompt = `【身份】你是「夜行列车」的叙述者，冷漠观察一切的声音。
 
 【风格】克苏鲁恐怖，第二人称，简洁留白，感官细节优先。
+${knowledgeContext}
 
 【NPC】
 - 检票员：机械冷漠，空洞眼神
@@ -1045,6 +1092,7 @@
 
 ${sceneContext}
 ${statsContext}
+${knowledgeContext}
 
 【可用场景ID】
 start, action_ticket, action_window, rest_transition, walk_away_transition,
