@@ -354,10 +354,12 @@ h3,
 
 /* Dialog Text Area - Compact for Overlay */
 .scene-text {
-    max-height: 120px;
+    max-height: 250px;
     overflow-y: auto;
     margin-bottom: 0.8rem;
     padding-right: 0.5rem;
+    /* Prevent squishing */
+    flex-shrink: 0;
 }
 
 .scene-text::-webkit-scrollbar {

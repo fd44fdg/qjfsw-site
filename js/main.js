@@ -771,6 +771,8 @@
     function selectNextScene() {
         const available = scenes.filter(scene => {
             if (worldState.playedScenes.includes(scene.id)) return false;
+            // ONLY pick scenes explicitly marked as random
+            if (!scene.random) return false;
             if (scene.conditions) return checkConditions(scene.conditions);
             return true;
         });
