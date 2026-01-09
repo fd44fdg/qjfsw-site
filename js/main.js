@@ -249,6 +249,8 @@
         updateBgmTrack();
     }
 
+    let audioFadeInterval = null;
+
     function updateBgmTrack() {
         // Determine which track to play based on state
         const targetTrack = (worldState.reality_noise > 40 || worldState.train_stability < 40)
@@ -276,32 +278,36 @@
         }
 
         // Cross-fade (simple version)
+        if (audioFadeInterval) clearInterval(audioFadeInterval);
         let vol = DOM.bgm.volume;
-        const interval = setInterval(() => {
+        audioFadeInterval = setInterval(() => {
             vol -= 0.05;
             if (vol <= 0) {
-                clearInterval(interval);
+                clearInterval(audioFadeInterval);
+                audioFadeInterval = null;
                 DOM.bgm.src = nextSrc;
                 DOM.bgm.load();
                 DOM.bgm.play().then(() => {
                     fadeIn();
                 }).catch(e => console.log(e));
             } else {
-                DOM.bgm.volume = vol;
+                DOM.bgm.volume = Math.max(0, vol);
             }
         }, 50);
     }
 
     function fadeIn() {
+        if (audioFadeInterval) clearInterval(audioFadeInterval);
         let vol = 0;
         const targetVol = worldState.bgmVolume || 0.5;
-        const interval = setInterval(() => {
+        audioFadeInterval = setInterval(() => {
             vol += 0.05;
             if (vol >= targetVol) {
-                clearInterval(interval);
+                clearInterval(audioFadeInterval);
+                audioFadeInterval = null;
                 DOM.bgm.volume = targetVol;
             } else {
-                DOM.bgm.volume = vol;
+                DOM.bgm.volume = Math.min(targetVol, vol);
             }
         }, 50);
     }
@@ -540,9 +546,9 @@
     // Fixed locations for navigation (with separate dialogue history)
     const LOCATIONS = [
         { id: 'start', name: '车厢', bg: 'train_bg_2.png', npc: null, defaultSceneId: 'start', savedHTML: null },
-        { id: 'inspector_area', name: '检票员', bg: 'train_bg_2.png', npc: 'inspector_1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
-        { id: 'anomaly_area', name: '异常乘客', bg: 'train_bg_3.png', npc: 'anomaly_1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
-        { id: 'silent_area', name: '沉默乘客', bg: 'train_bg_2.png', npc: 'silent_passenger.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
+        { id: 'inspector', name: '检票员', bg: 'train_bg_2.png', npc: 'inspector_1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
+        { id: 'anomaly', name: '异常乘客', bg: 'train_bg_3.png', npc: 'anomaly_1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
+        { id: 'silent', name: '沉默乘客', bg: 'train_bg_2.png', npc: 'silent_passenger.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
         { id: 'corridor', name: '过道', bg: 'corridor_view.png', npc: null, defaultSceneId: 'corridor_01', savedHTML: null }
     ];
     let currentLocationIndex = 0;
@@ -1165,10 +1171,15 @@
             }
 
             // Attempt to parse the full JSON block from fullContent
-            const jsonMatch = fullContent.match(/```json\s*([\s\S]*?)```/);
+            const jsonMatch = fullContent.match(/```json\s*([\s\S]*?)(?:```|$)/);
             if (jsonMatch) {
                 try {
-                    const cleanJsonStr = jsonMatch[1].replace(/:\s*\+(\d+)/g, ':$1');
+                    let jsonStr = jsonMatch[1].trim();
+                    // Basic sanity check for unclosed JSON
+                    if (!jsonStr.endsWith('}')) {
+                        jsonStr += (jsonStr.match(/{/g) || []).length > (jsonStr.match(/}/g) || []).length ? '}' : '';
+                    }
+                    const cleanJsonStr = jsonStr.replace(/:\s*\+(\d+)/g, ':$1');
                     const gameLogic = JSON.parse(cleanJsonStr);
                     if (gameLogic.effects) {
                         applyEffects(gameLogic.effects);
