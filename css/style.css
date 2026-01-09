@@ -789,14 +789,112 @@ img:not([src]) {
     visibility: visible;
 }
 
-.history-panel {
-    width: 600px;
-    height: 80vh;
-    background: rgba(20, 25, 35, 0.9);
-    border: 1px solid var(--border-glass);
+/* Right-side Control Panel (Choices & Nav) */
+.choices-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 35%;
+    /* Stop above the text box area */
+    width: 300px;
+    background: transparent;
+    /* Keep it clean */
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    justify-content: flex-end;
+    /* Align choices to bottom of this area */
+    z-index: 15;
+    /* Below dialog (20) but above NPC (5) */
+    pointer-events: none;
+    /* Let clicks pass through empty areas */
+}
+
+/* Enable pointer events for children */
+.choices-panel>* {
+    pointer-events: auto;
+}
+
+.panel-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2x2 grid */
+    gap: 0.5rem;
+    margin-bottom: auto;
+    /* Push to top */
+}
+
+.panel-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    margin: 1rem 0;
+}
+
+.thoughts-container {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-glass);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.thoughts-header-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.thoughts-list {
+    list-style: none;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.thoughts-list li {
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.thoughts-list li::before {
+    content: '•';
+    color: var(--accent-cyan);
+    margin-right: 0.5rem;
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+}
+
+.choice-btn {
+    text-align: right;
+    /* Aligned right for style */
+    padding: 1rem;
+    background: linear-gradient(90deg, transparent, rgba(20, 25, 30, 0.8));
+    border-right: 2px solid var(--accent-gold);
+    border-left: none;
+    border-top: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.choice-btn:hover {
+    transform: translateX(-5px);
+    /* Move left on hover */
+    border-color: var(--accent-cyan);
+    background: linear-gradient(90deg, transparent, rgba(30, 40, 50, 0.9));
+    color: var(--accent-cyan);
 }
 
 .history-header {
