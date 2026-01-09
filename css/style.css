@@ -222,24 +222,33 @@ h3,
 .game-container {
     flex: 1;
     display: flex;
+    flex-direction: column;
     overflow: hidden;
     padding: 0;
     gap: 0;
     position: relative;
+    /* Ensure it takes full available height */
 }
 
-/* Visual Panel - Full Screen */
+/* Visual Panel - Full Screen Background & NPC */
 .visual-panel {
     flex: 1;
     position: relative;
     overflow: hidden;
     background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    /* Align bottom naturally */
 }
 
 .background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    transition: transform 5s linear;
+    z-index: 1;
 }
 
 .background-layer img {
@@ -247,27 +256,37 @@ h3,
     height: 100%;
     object-fit: cover;
     filter: brightness(0.7) contrast(1.1);
+    transition: transform 5s linear;
 }
 
+/* NPC Layer - Centered & Behind Dialogue */
 .npc-layer {
     position: absolute;
-    bottom: 0;
+    bottom: 0px;
+    /* Align to bottom */
     left: 50%;
     transform: translateX(-50%);
-    width: 70%;
-    height: 85%;
+    width: auto;
+    height: 90vh;
+    /* Occupy most of height */
+    max-width: 100%;
     display: flex;
-    align-items: flex-end;
     justify-content: center;
+    align-items: flex-end;
     pointer-events: none;
+    /* Let clicks pass through to bg/buttons */
     z-index: 5;
+    /* Above BG, Below Dialog */
+    transition: all 0.5s ease-out;
 }
 
 .npc-layer img {
-    max-width: 100%;
-    max-height: 100%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    /* Maintain aspect ratio */
     object-fit: contain;
-    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.8));
+    filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
     animation: portraitFloat 6s ease-in-out infinite;
 }
 
@@ -283,53 +302,50 @@ h3,
     }
 }
 
-/* Dialog Overlay - Galgame Style */
+/* Dialog Overlay - Bottom text box */
 .dialog-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(5, 5, 10, 0.95) 0%, rgba(5, 5, 10, 0.85) 70%, rgba(5, 5, 10, 0) 100%);
-    padding: 1.5rem 2rem 1rem;
-    z-index: 10;
-    backdrop-filter: blur(8px);
-    border-top: 1px solid var(--border-glass);
+    width: 100%;
+    height: 35%;
+    /* Fixed height for Galgame text box */
+    min-height: 250px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 10%, rgba(10, 14, 23, 0.8) 80%, transparent);
+    backdrop-filter: blur(3px);
+    /* Gentle blur */
+    padding: 2rem 15% 1rem 15%;
+    /* Horizontal padding to focus text */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    z-index: 20;
+    /* Topmost UI layer */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dialog-header {
     display: flex;
     align-items: baseline;
     gap: 1rem;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
 }
 
 .dialog-header .scene-title {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     color: var(--accent-cyan);
     margin: 0;
     text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
 }
 
 .dialog-header .scene-npc {
+    font-size: 1rem;
     color: var(--accent-purple);
-    font-size: 0.85rem;
+    font-weight: bold;
 }
 
 /* Choices Panel - Right Side */
-.choices-panel {
-    width: 280px;
-    background: var(--bg-panel) url('../assets/images/ui_texture.png') repeat;
-    background-blend-mode: overlay;
-    backdrop-filter: blur(15px);
-    border-left: 1px solid var(--border-glass);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    z-index: 20;
-    box-shadow: inset 5px 0 15px rgba(0, 0, 0, 0.5);
-}
-
 /* Legacy .text-panel removed - now using .dialog-overlay */
 
 /* Legacy .scene-header for compatibility */
