@@ -603,22 +603,13 @@
     // ... (Existing updateBackground, updateNPC, getNpcLabel, etc.) ...
     function updateBackground(bgName) {
         if (!bgName) {
-            // Default fallback if no bgName provided
-            const img = new Image();
-            img.src = ASSET_PATHS.train + '列车差分2.png';
-            img.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(img); };
+            DOM.backgroundLayer.innerHTML = '<div class="placeholder-bg">列车背景</div>';
             return;
         }
         const imgPath = ASSET_PATHS.train + bgName;
         const img = new Image();
         img.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(img); };
-        // On error, fallback to default train image instead of black screen
-        img.onerror = () => {
-            console.warn(`Failed to load background: ${bgName}, using fallback.`);
-            const fallback = new Image();
-            fallback.src = ASSET_PATHS.train + '列车差分2.png';
-            fallback.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(fallback); };
-        };
+        img.onerror = () => { DOM.backgroundLayer.innerHTML = `<div class="placeholder-bg">${bgName}</div>`; };
         img.src = imgPath;
     }
 
@@ -639,8 +630,7 @@
     }
 
     function getNpcLabel(npcType) {
-        if (!npcType || npcType === 'none') return '';
-        const labels = { inspector: '检票员', anomaly: '异常乘客', silent: '沉默乘客' };
+        const labels = { inspector: '检票员', anomaly: '异常乘客', silent: '沉默乘客', none: '' };
         return labels[npcType] || npcType || '';
     }
 
