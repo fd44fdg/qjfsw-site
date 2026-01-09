@@ -1000,13 +1000,10 @@ h3,
 }
 
 .turn-counter {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--accent-cyan);
-    padding: 0.2rem 0.5rem;
-    background: rgba(0, 243, 255, 0.1);
-    border-radius: 4px;
-    transition: color 0.3s, background 0.3s;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    opacity: 0.9;
+    transition: color 0.3s;
 }
 
 .thoughts-list {

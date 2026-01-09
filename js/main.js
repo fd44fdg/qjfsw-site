@@ -750,6 +750,7 @@
         // Increment turn count
         worldState.turnCount++;
         saveState();
+        renderState();  // Update turn countdown UI immediately
 
         // Check for turn limit ending (first loop soft failure)
         if (worldState.turnCount >= 15) {
