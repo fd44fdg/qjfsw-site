@@ -695,7 +695,7 @@
     "id": "event_whisper",
     "title": "虚空耳语",
     "npc": "none",
-    "background": "dark_corridor.png",
+    "background": "corridor_view.png",
     "random": true,
     "npcSprite": null,
     "conditions": {

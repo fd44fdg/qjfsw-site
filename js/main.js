@@ -603,14 +603,22 @@
     // ... (Existing updateBackground, updateNPC, getNpcLabel, etc.) ...
     function updateBackground(bgName) {
         if (!bgName) {
-            DOM.backgroundLayer.innerHTML = '<div class="placeholder-bg">列车背景</div>';
+            // Default fallback if no bgName provided
+            const img = new Image();
+            img.src = ASSET_PATHS.train + '列车差分2.png';
+            img.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(img); };
             return;
         }
         const imgPath = ASSET_PATHS.train + bgName;
         const img = new Image();
         img.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(img); };
-        // On error, just show empty black background (better than ugly text)
-        img.onerror = () => { DOM.backgroundLayer.innerHTML = ''; };
+        // On error, fallback to default train image instead of black screen
+        img.onerror = () => {
+            console.warn(`Failed to load background: ${bgName}, using fallback.`);
+            const fallback = new Image();
+            fallback.src = ASSET_PATHS.train + '列车差分2.png';
+            fallback.onload = () => { DOM.backgroundLayer.innerHTML = ''; DOM.backgroundLayer.appendChild(fallback); };
+        };
         img.src = imgPath;
     }
 
