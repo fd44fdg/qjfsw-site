@@ -463,11 +463,14 @@
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // 1. Save current dialogue to current location (ONLY if we represent that location)
-        // This prevents Random Events or temporary scenes from overwriting the location's history
-        const currentLoc = LOCATIONS[currentLocationIndex];
-        if (currentLoc && worldState.currentSceneId === currentLoc.id) {
-            currentLoc.savedHTML = DOM.sceneText.innerHTML;
+        // 1. Save current dialogue to current location
+        // SAVE condition: Only if NOT in a random event (glitches/whispers)
+        // We trust currentLocationIndex represents where we are physically
+        if (!worldState.currentSceneId.startsWith('event_')) {
+            const currentLoc = LOCATIONS[currentLocationIndex];
+            if (currentLoc) {
+                currentLoc.savedHTML = DOM.sceneText.innerHTML;
+            }
         }
 
         // 10% Chance for Random Event (skip if already in event)
