@@ -673,26 +673,27 @@
             return;
         }
 
-        // Standard Action (no type, no quotes, no next): Apply effects, check endings
+        // Standard Action (no type, no quotes): Apply effects, then either advance or send to AI
         if (choice.effects) applyEffects(choice.effects);
         if (choice.setFlags) Object.assign(worldState.flags, choice.setFlags);
         renderState();
 
-        // Only check endings for standard actions (not dialogue/events)
+        // Check explicit ending
         if (choice.ending) { triggerEnding(choice.ending); return; }
         const ending = checkEndings();
         if (ending) { triggerEnding(ending); return; }
 
-        // If no next specified and no ending, stay in current scene and re-render choices
-        if (!choice.next) {
-            const scene = scenes.find(s => s.id === worldState.currentSceneId);
-            if (scene) renderChoices(scene.choices);
+        // If 'next' is specified, advance to that scene
+        if (choice.next) {
+            worldState.sceneCount++;
+            advanceToNextScene(choice.next, true);
             return;
         }
 
-        // Has next but wasn't handled above - treat as scene transition
-        worldState.sceneCount++;
-        advanceToNextScene(choice.next, true);
+        // NO 'next' specified: send action to AI for narrative response
+        // This makes buttons like '递上车票' trigger AI storytelling
+        DOM.chatInput.value = `*你 ${choice.label}*`;
+        handleChatSubmit();
     }
 
     function applyEffects(effects) {
@@ -977,6 +978,8 @@
                     const timeSinceLastChunk = Date.now() - lastChunkTime;
                     if (timeSinceLastChunk > 15000) {
                         console.warn('Stream stalled - no data received for 15s');
+                        p.textContent = '[连接超时，请点击发送重试]';
+                        p.style.color = '#ff6b6b';
                         break;
                     }
 
