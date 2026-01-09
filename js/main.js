@@ -462,7 +462,7 @@
     // Fixed locations for navigation (can revisit, preserves dialogue)
     // Fixed locations for navigation (with separate dialogue history)
     const LOCATIONS = [
-        { id: 'start', name: '车厢', bg: 'train_bg_1.png', npc: null, defaultSceneId: 'start', savedHTML: null },
+        { id: 'start', name: '车厢', bg: 'train_bg_2.png', npc: null, defaultSceneId: 'start', savedHTML: null },
         { id: 'inspector_area', name: '检票员', bg: 'train_bg_2.png', npc: 'inspector_1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
         { id: 'anomaly_area', name: '异常乘客', bg: 'train_bg_3.png', npc: 'anomaly_1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
         { id: 'silent_area', name: '沉默乘客', bg: 'train_bg_2.png', npc: 'silent_passenger.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
@@ -1192,15 +1192,14 @@ ${sceneContext}
 ${statsContext}
 ${knowledgeContext}
 
-【可用场景ID】
-start, action_ticket, action_window, rest_transition, walk_away_transition,
-inspector_01, inspector_02, inspector_03, anomaly_01, anomaly_02, anomaly_03,
-silent_01, silent_02, corridor_01, note_01, window_01
+【立绘切换机制 - 必读】
+本游戏通过在 JSON 的 "next" 字段返回特定场景 ID 来切换立绘和环境：
+- 后缀 _01：默认状态（如 inspector_01）。使用普通、自然的立绘。
+- 后缀 _02：警戒/怀疑状态（如 inspector_02）。立绘发生微小偏移或神情变化。
+- 后缀 _03：异变/恐怖状态（如 inspector_03）。立绘变得扭曲、崩坏，背景可能切换到异常版本。
 
-【输入处理】
-- 对话：直接回应
-- 动作（*xxx*）：描述感官反馈
-- 移动/视角（如"走向"、"查看"、"转身"）：必须在next字段指定场景ID
+【切换指令】
+当「现实噪声」> 40 或「列车稳定度」< 40 时，你应当在 JSON 中通过 "next" 字段引导玩家进入带 _02 或 _03 后缀的对应场景（例如从 inspector_01 引导至 inspector_03）。
 
 【输出格式】严格遵守！
 1. 叙事（30-80字，纯文本）
