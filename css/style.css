@@ -1079,6 +1079,35 @@ h3,
     color: var(--accent-cyan);
 }
 
+/* Tutorial Stats Section */
+.tutorial-stats {
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--accent-gold);
+    padding: 1rem 1.5rem;
+}
+
+.tutorial-stats h3 {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 0.8rem;
+    font-weight: normal;
+}
+
+.tutorial-stat-item {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+}
+
+.tutorial-stat-item strong {
+    color: var(--accent-gold);
+}
+
+.tutorial-stat-item:last-child {
+    margin-bottom: 0;
+}
+
 /* Tutorial Goal */
 .tutorial-goal {
     text-align: center;
