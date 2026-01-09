@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Night Train - Narrative Roguelike Engine
  * Pure vanilla JavaScript, no dependencies
  */
