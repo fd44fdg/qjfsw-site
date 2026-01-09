@@ -958,7 +958,13 @@ h3,
     background: rgba(0, 0, 0, 0.3);
     border-left: 3px solid var(--accent-purple);
     padding: 1rem 1.5rem;
-    margin-top: 1rem;
+}
+
+.tutorial-tips h3 {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 0.8rem;
+    font-weight: normal;
 }
 
 .tutorial-tip {
@@ -973,6 +979,55 @@ h3,
 
 .tutorial-tip:last-child {
     margin-bottom: 0;
+}
+
+/* Tutorial Mechanics Section */
+.tutorial-mechanics {
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--accent-cyan);
+    padding: 1rem 1.5rem;
+}
+
+.tutorial-mechanics h3 {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    font-weight: normal;
+}
+
+.tutorial-mechanic-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.mechanic-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.mechanic-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.mechanic-text strong {
+    color: var(--accent-cyan);
+}
+
+/* Tutorial Goal */
+.tutorial-goal {
+    text-align: center;
+    padding: 1rem;
+    border: 1px solid var(--accent-gold);
+    background: rgba(255, 204, 51, 0.05);
+}
+
+.tutorial-goal p {
+    color: var(--accent-gold);
+    margin: 0;
 }
 
 .btn-tutorial-start {

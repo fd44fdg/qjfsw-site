@@ -63,15 +63,30 @@
     };
 
     // Thoughts data - hints shown in UI, changes based on worldState
+    // These provide subtle guidance to players about what to do
     const THOUGHTS = [
-        // Default thoughts (loop 1)
-        { id: 'inspector', text: '检票员为什么总是在观察你', condition: (s) => s.loop === 1 },
-        { id: 'passenger', text: '那个乘客似乎认识你', condition: (s) => s.loop === 1 },
-        { id: 'destination', text: '这列车真的会到站吗？', condition: (s) => true },
-        // Loop 2+ replacements
-        { id: 'inspector', text: '检票员的眼神...你好像见过', condition: (s) => s.loop >= 2 },
-        { id: 'passenger', text: '有些对话，你记得说过', condition: (s) => s.loop >= 2 },
-        { id: 'memory', text: '这一切...似曾相识', condition: (s) => s.loop >= 2 },
+        // Starting hints (loop 1, early game)
+        { id: 'goal1', text: '也许该找找车票...', condition: (s) => s.loop === 1 && !s.flags.has_note && s.sceneCount < 3 },
+        { id: 'explore', text: '试着在车厢里走动看看', condition: (s) => s.sceneCount < 2 },
+        { id: 'talk', text: '可以直接输入想说的话', condition: (s) => s.turnCount < 3 },
+
+        // Location-aware hints
+        { id: 'inspector_hint', text: '检票员在等你出示车票', condition: (s) => s.currentSceneId === 'inspector_area' && !s.flags.met_inspector },
+        { id: 'anomaly_hint', text: '那个乘客...似乎不太正常', condition: (s) => s.currentSceneId === 'anomaly_area' && !s.flags.approached_anomaly },
+        { id: 'silent_hint', text: '沉默乘客手里好像有东西', condition: (s) => s.currentSceneId === 'silent_area' && !s.flags.saw_note },
+
+        // Progress-based hints
+        { id: 'note_hint', text: '那张纸条上写了什么...', condition: (s) => s.flags.saw_note && !s.flags.has_note },
+        { id: 'truth_hint', text: '也许该问问其他人知道什么', condition: (s) => s.flags.has_note },
+
+        // Danger warnings
+        { id: 'stability_warn', text: '列车在颤抖...发生了什么？', condition: (s) => s.train_stability < 50 },
+        { id: 'noise_warn', text: '周围的一切开始变得模糊...', condition: (s) => s.reality_noise > 60 },
+
+        // Loop 2+ meta-hints
+        { id: 'loop_memory', text: '这一切...似曾相识', condition: (s) => s.loop >= 2 },
+        { id: 'loop_differ', text: '这次也许该试试别的做法', condition: (s) => s.loop >= 2 && s.sceneCount < 3 },
+        { id: 'destination', text: '这列车...真的会到站吗？', condition: (s) => true },
     ];
 
     // ============================================
