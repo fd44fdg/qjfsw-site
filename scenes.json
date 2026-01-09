@@ -1,0 +1,658 @@
+[
+  {
+    "id": "start",
+    "title": "夜行列车",
+    "npc": "none",
+    "background": "列车差分2.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "列车在无尽的夜色中穿行。窗外是漆黑的虚空，偶尔有模糊的光点掠过。你不记得自己是何时上车的。{loop>=2:这种感觉...似曾相识。}",
+    "choices": [
+      {
+        "label": "查看车票",
+        "type": "action",
+        "effects": {
+          "anomaly_awareness": 5
+        },
+        "setFlags": {},
+        "next": "action_ticket",
+        "ending": null
+      },
+      {
+        "label": "望向窗外",
+        "type": "action",
+        "effects": {
+          "reality_noise": 5,
+          "train_stability": -5
+        },
+        "setFlags": {},
+        "next": "action_window",
+        "ending": null
+      },
+      {
+        "label": "闭目养神",
+        "type": "action",
+        "effects": {
+          "train_stability": 5
+        },
+        "setFlags": {},
+        "next": "rest_transition",
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "action_ticket",
+    "title": "车票",
+    "npc": "none",
+    "background": "ticket_closeup.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "一张泛黄的旧车票。日期模糊不清，但目的地一栏写着“... -> 虚无”。你的手指触碰到票面，感到一丝冰冷。",
+    "choices": [
+      {
+        "label": "收起车票",
+        "type": "action",
+        "effects": {},
+        "setFlags": {},
+        "next": "start",
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "action_window",
+    "title": "窗外",
+    "npc": "none",
+    "background": "window_view_blurred.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "玻璃上映出一个模糊的倒影...那真的是你吗？外面的星空在扭曲旋转，仿佛某种巨大的生物正在注视着列车。",
+    "choices": [
+      {
+        "label": "移开视线",
+        "type": "action",
+        "effects": {
+          "anomaly_awareness": 5
+        },
+        "setFlags": {},
+        "next": "start",
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "inspector_01",
+    "title": "例行检票",
+    "npc": "inspector",
+    "background": "列车差分2.png",
+    "npcSprite": "检票员差分1.png",
+    "conditions": null,
+    "text": "一个身穿制服的检票员走近。他的面容平静，但目光锐利。\"您好，请出示车票。\"",
+    "choices": [
+      {
+        "label": "递上车票",
+        "effects": {
+          "inspector_trust": 15
+        },
+        "setFlags": {
+          "met_inspector": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "\"我找不到了...\"",
+        "effects": {
+          "inspector_trust": -10,
+          "reality_noise": 5
+        },
+        "setFlags": {
+          "met_inspector": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "直视他的眼睛",
+        "effects": {
+          "anomaly_awareness": 10,
+          "inspector_trust": 5
+        },
+        "setFlags": {
+          "met_inspector": true,
+          "stared_inspector": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "inspector_02",
+    "title": "深入询问",
+    "npc": "inspector",
+    "background": "列车差分2.png",
+    "npcSprite": "检票员差分2.png",
+    "conditions": {
+      "flags": {
+        "met_inspector": true
+      }
+    },
+    "text": "检票员再次出现。\"您的目的地是...？\" 他翻看着一本厚重的名册，手指在某一页停顿。",
+    "choices": [
+      {
+        "label": "\"终点站。\"",
+        "effects": {
+          "inspector_trust": 10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "\"我不知道。\"",
+        "effects": {
+          "reality_noise": 10,
+          "train_stability": -5
+        },
+        "setFlags": {
+          "confused_destination": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "反问：\"这列车要去哪里？\"",
+        "effects": {
+          "anomaly_awareness": 15,
+          "inspector_trust": -5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "inspector_03",
+    "title": "重复的检票",
+    "npc": "inspector",
+    "background": "列车差分3.png",
+    "npcSprite": "检票员差分3.png",
+    "conditions": {
+      "loop": {
+        "gte": 2
+      },
+      "flags": {
+        "met_inspector": true
+      }
+    },
+    "text": "检票员又一次走来。他说的话与上次一模一样——连呼吸的节奏都相同。{loop>=3:你已经听过这句话太多次了。}",
+    "choices": [
+      {
+        "label": "假装第一次见面",
+        "effects": {
+          "inspector_trust": 10,
+          "reality_noise": 5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "\"我们见过了。\"",
+        "effects": {
+          "anomaly_awareness": 20,
+          "inspector_trust": -15,
+          "train_stability": -10
+        },
+        "setFlags": {
+          "broke_loop_illusion": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "无视他",
+        "effects": {
+          "inspector_trust": -20,
+          "train_stability": -5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "anomaly_01",
+    "title": "奇怪的乘客",
+    "npc": "anomaly",
+    "background": "列车差分3.png",
+    "npcSprite": "异常乘客差分1.png",
+    "conditions": null,
+    "text": "车厢角落坐着一个乘客。他的轮廓偶尔会模糊，像是信号不好的电视画面。他注意到你的目光，微微一笑。",
+    "choices": [
+      {
+        "label": "坐到他身边",
+        "effects": {
+          "anomaly_awareness": 15,
+          "train_stability": -10
+        },
+        "setFlags": {
+          "approached_anomaly": true
+        },
+        "next": "anomaly_02",
+        "ending": null
+      },
+      {
+        "label": "快步走开",
+        "type": "action",
+        "effects": {
+          "train_stability": 5
+        },
+        "setFlags": {},
+        "next": "walk_away_transition",
+        "ending": null
+      },
+      {
+        "label": "远远观察",
+        "type": "event",
+        "effects": {
+          "anomaly_awareness": 10,
+          "reality_noise": 5
+        },
+        "setFlags": {
+          "watched_anomaly": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "anomaly_02",
+    "title": "异常对话",
+    "npc": "anomaly",
+    "background": "列车差分4.png",
+    "npcSprite": "异常乘客差分2.png",
+    "conditions": {
+      "flags": {
+        "approached_anomaly": true
+      }
+    },
+    "text": "\"你也发现了，对吧？\" 他的声音像是从很远的地方传来。\"这列车...不会到站的。\" 他的影子与身体错开了几厘米。",
+    "choices": [
+      {
+        "label": "\"你是什么？\"",
+        "effects": {
+          "anomaly_awareness": 20,
+          "reality_noise": 15
+        },
+        "setFlags": {
+          "questioned_anomaly": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "\"怎样才能离开？\"",
+        "effects": {
+          "reality_noise": 10,
+          "train_stability": -15
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "站起来离开",
+        "type": "action",
+        "effects": {
+          "train_stability": 5,
+          "inspector_trust": 5
+        },
+        "setFlags": {},
+        "next": "walk_away_transition",
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "rest_transition",
+    "title": "半梦半醒",
+    "npc": "none",
+    "background": "列车差分2.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "你轻轻合上眼。列车有节奏的撞击声成了唯一的慰藉。不知过了多久，你感到一阵莫名的寒意，让你不由自主地睁开了眼。",
+    "choices": [
+      {
+        "label": "清醒过来",
+        "type": "action",
+        "effects": {},
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "walk_away_transition",
+    "title": "车厢接头",
+    "npc": "none",
+    "background": "corridor_view.png",
+    "npcSprite": null,
+    "conditions": null,
+    "text": "你推开沉重的包铁木门，走入狭窄的连接处。风声在这里变得刺耳，列车的摇晃也更加剧烈。你需要穿过这里前往下一节车厢。",
+    "choices": [
+      {
+        "label": "推开下一扇门",
+        "type": "action",
+        "effects": {},
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "anomaly_03",
+    "title": "现实裂隙",
+    "npc": "anomaly",
+    "background": "列车差分4.png",
+    "npcSprite": "异常乘客差分3.png",
+    "conditions": {
+      "reality_noise": {
+        "gte": 40
+      }
+    },
+    "text": "车厢的墙壁开始起伏，像是某种巨大生物的呼吸。那个异常乘客站在过道中央，他的形态已经完全模糊。\"选择的时刻快到了。\"",
+    "choices": [
+      {
+        "label": "向他伸出手",
+        "effects": {
+          "anomaly_awareness": 25,
+          "reality_noise": 20,
+          "train_stability": -20
+        },
+        "setFlags": {
+          "touched_anomaly": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "呼唤检票员",
+        "effects": {
+          "inspector_trust": 20,
+          "train_stability": 10,
+          "anomaly_awareness": -10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "闭上眼睛，否认一切",
+        "effects": {
+          "train_stability": 15,
+          "reality_noise": -10
+        },
+        "setFlags": {
+          "denied_reality": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "silent_01",
+    "title": "沉默的角落",
+    "npc": "silent",
+    "background": "列车差分2.png",
+    "npcSprite": "沉默乘客.png",
+    "conditions": null,
+    "text": "车厢末端坐着一个人。她面无表情，目视前方。无论发生什么，她从不说话，从不移动。只是...存在着。",
+    "choices": [
+      {
+        "label": "尝试与她交谈",
+        "effects": {
+          "reality_noise": 10,
+          "anomaly_awareness": 5
+        },
+        "setFlags": {
+          "talked_to_silent": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "坐在她旁边",
+        "effects": {
+          "train_stability": -5,
+          "reality_noise": 5
+        },
+        "setFlags": {
+          "sat_with_silent": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "忽略她",
+        "type": "event",
+        "effects": {},
+        "setFlags": {},
+        "next": "walk_away_transition",
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "silent_02",
+    "title": "沉默者的凝视",
+    "npc": "silent",
+    "background": "列车差分3.png",
+    "npcSprite": "沉默乘客.png",
+    "conditions": {
+      "flags": {
+        "sat_with_silent": true
+      },
+      "loop": {
+        "gte": 2
+      }
+    },
+    "text": "沉默的乘客转过头来。这是她第一次正视你。她的眼中倒映着无数个你——每一个循环中的你。她缓缓眨了眨眼。{loop>=3:你怀疑她是唯一知道真相的人。}",
+    "choices": [
+      {
+        "label": "低声问：\"你知道多少？\"",
+        "effects": {
+          "anomaly_awareness": 20,
+          "reality_noise": 10
+        },
+        "setFlags": {
+          "silent_acknowledged": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "对他点头",
+        "effects": {
+          "anomaly_awareness": 10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "移开视线",
+        "effects": {
+          "train_stability": 5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "corridor_01",
+    "title": "无尽走廊",
+    "npc": "none",
+    "background": "列车差分4.png",
+    "npcSprite": null,
+    "conditions": {
+      "train_stability": {
+        "lte": 50
+      }
+    },
+    "text": "你走在车厢之间的连接处。走廊似乎比记忆中更长了...每走十步，门就会后退十步。空气变得粘稠。",
+    "choices": [
+      {
+        "label": "继续前进",
+        "effects": {
+          "train_stability": -15,
+          "reality_noise": 10
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "原路返回",
+        "effects": {
+          "train_stability": 5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "触摸墙壁",
+        "type": "event",
+        "effects": {
+          "anomaly_awareness": 15,
+          "train_stability": -10
+        },
+        "setFlags": {
+          "touched_wall": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "note_01",
+    "title": "遗落的纸条",
+    "npc": "none",
+    "background": "列车差分2.png",
+    "npcSprite": null,
+    "conditions": {
+      "loop": {
+        "gte": 2
+      }
+    },
+    "text": "座位缝隙里藏着一张纸条。上面是你自己的笔迹：{loop>=2:\"第{loop}次了。\"} \"不要相信检票员。列车没有终点。只有循环。\"",
+    "choices": [
+      {
+        "label": "收好纸条",
+        "type": "event",
+        "effects": {
+          "anomaly_awareness": 15,
+          "reality_noise": 5
+        },
+        "setFlags": {
+          "saw_note": true,
+          "has_note": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "撕毁它",
+        "type": "event",
+        "effects": {
+          "inspector_trust": 10,
+          "train_stability": 5
+        },
+        "setFlags": {
+          "saw_note": true,
+          "destroyed_note": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "给检票员看",
+        "type": "event",
+        "effects": {
+          "inspector_trust": 25,
+          "train_stability": -10,
+          "anomaly_awareness": -10
+        },
+        "setFlags": {
+          "saw_note": true,
+          "betrayed_self": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  },
+  {
+    "id": "window_01",
+    "title": "窗外的倒影",
+    "npc": "none",
+    "background": "列车差分2.png",
+    "npcSprite": null,
+    "conditions": {
+      "reality_noise": {
+        "gte": 30
+      }
+    },
+    "text": "你望向车窗，看到自己的倒影。但倒影的动作比你慢了一拍...不，它在做不同的事情。它对你招了招手。",
+    "choices": [
+      {
+        "label": "招手回应",
+        "effects": {
+          "reality_noise": 20,
+          "anomaly_awareness": 15
+        },
+        "setFlags": {
+          "mirror_contact": true
+        },
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "用手遮住窗户",
+        "effects": {
+          "train_stability": 10,
+          "reality_noise": -5
+        },
+        "setFlags": {},
+        "next": null,
+        "ending": null
+      },
+      {
+        "label": "敲击玻璃",
+        "type": "event",
+        "effects": {
+          "train_stability": -20,
+          "reality_noise": 15,
+          "anomaly_awareness": 10
+        },
+        "setFlags": {
+          "broke_boundary": true
+        },
+        "next": null,
+        "ending": null
+      }
+    ]
+  }
+]

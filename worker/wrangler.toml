@@ -1,0 +1,6 @@
+name = "nighttrain-api"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# The API_KEY will be set via Cloudflare dashboard as a secret
+# Run: npx wrangler secret put API_KEY

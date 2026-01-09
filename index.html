@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="夜行列车 - 一款叙事型Roguelike剧情模拟器">
+    <title>夜行列车 | Night Train</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Film Grain Overlay -->
+    <div class="film-grain"></div>
+
+    <!-- Status Bar (Debug) -->
+    <header class="status-bar">
+        <div class="status-item">
+            <span class="status-label">循环</span>
+            <span class="status-value" id="stat-loop">1</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">稳定度</span>
+            <span class="status-value" id="stat-stability">80</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">噪声</span>
+            <span class="status-value" id="stat-noise">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">信任</span>
+            <span class="status-value" id="stat-trust">30</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">觉察</span>
+            <span class="status-value" id="stat-awareness">0</span>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="game-container">
+        <!-- Full Screen Visual Area -->
+        <section class="visual-panel">
+            <div class="background-layer" id="background-layer">
+                <div class="placeholder-bg">列车背景</div>
+            </div>
+            <div class="npc-layer" id="npc-layer"></div>
+
+            <!-- Dialog Overlay (Galgame Style) -->
+            <div class="dialog-overlay">
+                <div class="dialog-header">
+                    <h2 class="scene-title" id="scene-title">夜行列车</h2>
+                    <span class="scene-npc" id="scene-npc"></span>
+                </div>
+                <div class="scene-text" id="scene-text">
+                    <p>列车在无尽的夜色中穿行。你不记得自己是何时上车的，也不知道目的地在哪里。</p>
+                </div>
+                <div class="chat-input-area" id="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="输入你想说的话..." autocomplete="off">
+                    <button id="btn-send-chat">发送</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Choices Panel (Right Side) -->
+        <aside class="choices-panel">
+            <!-- Control Buttons (Top) -->
+            <div class="panel-controls">
+                <button class="btn-control" id="btn-history">📜 历史</button>
+                <button class="btn-control" id="btn-bgm">🔇 BGM</button>
+                <button class="btn-control" id="btn-new-game">新游戏</button>
+                <button class="btn-control btn-danger" id="btn-clear-save">清空存档</button>
+            </div>
+            <div class="panel-divider"></div>
+            <!-- Choices Container -->
+            <div class="choices-container" id="choices-container">
+                <!-- Choices will be inserted here -->
+            </div>
+        </aside>
+    </main>
+
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorial-overlay">
+        <div class="tutorial-card">
+            <h1 class="tutorial-title">乘车指南 | Passenger Guide</h1>
+            <p class="tutorial-desc">你被困在了一列永无止境的夜行列车上。在这里，现实与幻觉的边界已经模糊。通过对话和行动，你将在这个循环中寻找真相。</p>
+
+            <div class="tutorial-stats-grid">
+                <div class="tutorial-stat-item">
+                    <span class="tutorial-stat-name">循环 (Loop)</span>
+                    <p class="tutorial-stat-detail">你进入这片虚无的次数。有些记忆会随之带入下一次循环。</p>
+                </div>
+                <div class="tutorial-stat-item">
+                    <span class="tutorial-stat-name">稳定度 (Stability)</span>
+                    <p class="tutorial-stat-detail">衡量列车与现实结构的完整性。归零将导致彻底的崩塌。</p>
+                </div>
+                <div class="tutorial-stat-item">
+                    <span class="tutorial-stat-name">噪声 (Noise)</span>
+                    <p class="tutorial-stat-detail">对现实的扭曲。越高，你看到的色彩就越诡异，世界也越危险。</p>
+                </div>
+                <div class="tutorial-stat-item">
+                    <span class="tutorial-stat-name">信任 (Trust)</span>
+                    <p class="tutorial-stat-detail">你与秩序化身（检票员）的关系。高信任能保你安全，但也可能将你永远留在车上。</p>
+                </div>
+                <div class="tutorial-stat-item">
+                    <span class="tutorial-stat-name">觉察 (Awareness)</span>
+                    <p class="tutorial-stat-detail">对列车真相的认知。只有看清一切，才能找到真正的出路。</p>
+                </div>
+            </div>
+
+            <div class="tutorial-goal">
+                <p>目标：在一局内至少经历 5 个场景，通过互动和选择，解锁不同的结局。注意你的数值平衡。</p>
+            </div>
+
+            <button class="btn-tutorial-start" id="btn-tutorial-start">接受命运</button>
+        </div>
+    </div>
+
+    <!-- Ending Overlay -->
+    <div class="ending-overlay" id="ending-overlay">
+        <div class="ending-content">
+            <h1 class="ending-title" id="ending-title">结局</h1>
+            <p class="ending-description" id="ending-description">描述文本</p>
+            <div class="ending-stats" id="ending-stats"></div>
+            <button class="btn-next-loop" id="btn-next-loop">开始下一局</button>
+        </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="history-overlay" id="history-overlay">
+        <div class="history-panel">
+            <div class="history-header">
+                <h2>对话历史</h2>
+                <button class="btn-close-history" id="btn-close-history">×</button>
+            </div>
+            <div class="history-content" id="history-content">
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="bgm" loop preload="auto">
+        <source src="assets/audio/bgm.wav" type="audio/wav">
+    </audio>
+
+
+
+    <script src="js/config.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
