@@ -116,6 +116,31 @@
         renderState();
         renderThoughts();
         showScene(worldState.currentSceneId);
+
+        // Restore recent dialogue for context (last 10 messages) on reload
+        if (worldState.currentSceneId !== 'start' && worldState.dialogHistory && worldState.dialogHistory.length > 0) {
+            setTimeout(() => {
+                // Only restore if the scene text is mostly empty (i.e., just the initial description)
+                if (DOM.sceneText.children.length <= 1) {
+                    const separator = document.createElement('div');
+                    separator.className = 'history-separator';
+                    separator.textContent = '--- 记忆碎片 ---';
+                    separator.style.textAlign = 'center';
+                    separator.style.opacity = '0.5';
+                    separator.style.margin = '10px 0';
+                    separator.style.fontSize = '0.8em';
+                    DOM.sceneText.appendChild(separator);
+
+                    const recent = worldState.dialogHistory.slice(-10);
+                    recent.forEach(entry => {
+                        if (entry.role === 'user' || entry.role === 'npc') {
+                            appendMessage(entry.role, entry.text);
+                        }
+                    });
+                }
+            }, 100);
+        }
+
         checkTutorial();
     }
 
