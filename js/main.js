@@ -435,31 +435,59 @@
         }, 300);
     }
 
-    // Manual scene navigation (train car buttons)
+    // Fixed locations for navigation (can revisit, preserves dialogue)
+    const LOCATIONS = [
+        { id: 'start', name: '车厢', bg: '列车差分1.png', npc: null },
+        { id: 'inspector_area', name: '检票员', bg: '列车差分2.png', npc: '检票员差分1.png', npcType: 'inspector' },
+        { id: 'anomaly_area', name: '异常乘客', bg: '列车差分3.png', npc: '异常乘客差分1.png', npcType: 'anomaly' },
+        { id: 'silent_area', name: '沉默乘客', bg: '列车差分2.png', npc: '沉默乘客.png', npcType: 'silent' },
+        { id: 'corridor', name: '过道', bg: 'corridor_view.png', npc: null }
+    ];
+    let currentLocationIndex = 0;
+
+    // Navigate between fixed locations (preserves dialogue)
     function navigateScene(direction) {
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // Get available scenes (not played yet, conditions met)
-        const available = scenes.filter(scene => {
-            if (scene.id === worldState.currentSceneId) return false;  // Not current
-            if (scene.id === 'start') return false;  // Skip start scene
-            if (scene.id.includes('action_') || scene.id.includes('transition')) return false;  // Skip action scenes
-            if (worldState.playedScenes.includes(scene.id)) return false;  // Not replayed
-            if (scene.conditions && !checkConditions(scene.conditions)) return false;  // Must meet conditions
-            return true;
-        });
-
-        if (available.length === 0) {
-            // No new scenes available, just show a message
-            appendMessage('system', '走廊的尽头似乎没有其他车厢了...');
-            return;
+        // Calculate new index
+        if (direction === 'prev') {
+            currentLocationIndex = (currentLocationIndex - 1 + LOCATIONS.length) % LOCATIONS.length;
+        } else {
+            currentLocationIndex = (currentLocationIndex + 1) % LOCATIONS.length;
         }
 
-        // Random selection from available
-        const nextScene = available[randomInt(0, available.length - 1)];
-        worldState.sceneCount++;
-        advanceToNextScene(nextScene.id, true);
+        const loc = LOCATIONS[currentLocationIndex];
+
+        // Smooth transition - only change visuals, NOT dialogue
+        isTransitioning = true;
+        DOM.backgroundLayer.classList.add('fade-out');
+        DOM.npcLayer.classList.add('fade-out');
+
+        setTimeout(() => {
+            // Update background
+            DOM.backgroundLayer.innerHTML = `<img src="assets/images/${loc.bg}" alt="${loc.name}" onerror="this.parentElement.innerHTML='<div class=placeholder-bg>列车背景</div>'">`;
+
+            // Update NPC sprite
+            if (loc.npc) {
+                DOM.npcLayer.innerHTML = `<img src="assets/images/${loc.npc}" alt="${loc.name}">`;
+            } else {
+                DOM.npcLayer.innerHTML = '';
+            }
+
+            // Update scene title (but keep dialogue)
+            const npcLabel = loc.npcType ? getNpcLabel(loc.npcType) : '';
+            DOM.sceneTitle.textContent = loc.name;
+            DOM.sceneNpc.textContent = npcLabel;
+
+            // Update worldState for AI context
+            worldState.currentSceneId = loc.id;
+            saveState();
+
+            DOM.backgroundLayer.classList.remove('fade-out');
+            DOM.npcLayer.classList.remove('fade-out');
+            isTransitioning = false;
+        }, 300);
     }
 
     function typewriter(element, htmlContent) {
