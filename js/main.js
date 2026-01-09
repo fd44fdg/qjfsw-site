@@ -594,7 +594,10 @@
                 p.textContent += text.charAt(i);
                 i++;
                 setTimeout(type, speed);
-                element.scrollTop = element.scrollHeight;
+                element.scrollTo({
+                    top: element.scrollHeight,
+                    behavior: 'smooth'
+                });
             }
         }
         type();
@@ -1057,7 +1060,10 @@
                                     narrativeText = displayNarrative;
                                     p.textContent = narrativeText;
                                     p.appendChild(cursor);
-                                    DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
+                                    DOM.sceneText.scrollTo({
+                                        top: DOM.sceneText.scrollHeight,
+                                        behavior: 'auto' // Use auto for high-frequency streaming updates
+                                    });
                                 }
                             } catch (e) {
                                 // Partial JSON - ignore
@@ -1104,7 +1110,10 @@
         p.className = role === 'user' ? 'message-user' : (role === 'system' ? 'message-system' : 'message-npc');
         p.textContent = text;
         DOM.sceneText.appendChild(p);
-        DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
+        DOM.sceneText.scrollTo({
+            top: DOM.sceneText.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 
     // Flag descriptions for AI context (Shared Knowledge)
@@ -1129,12 +1138,21 @@
         broke_boundary: "玩家曾试图敲破车窗离开。"
     };
 
+    const GENDER_MAP = {
+        inspector: '男',
+        anomaly: '男',
+        silent: '女',
+        none: '无'
+    };
+
     function constructPrompt(userText) {
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
-        const npcLabel = getNpcLabel(currentScene?.npc);
-        const npcGender = currentScene?.npc === 'silent' ? '女' : '男';
+        const npcType = currentScene?.npc || 'none';
+        const npcLabel = getNpcLabel(npcType);
+        const npcGender = GENDER_MAP[npcType] || '未知';
+
         const sceneContext = currentScene
-            ? `当前场景: "${currentScene.title}"\n场景描述: ${processText(currentScene.text)}\nNPC: ${npcLabel}${npcLabel ? ` (${npcGender}性)` : ''}`
+            ? `当前场景: "${currentScene.title}"\n场景描述: ${processText(currentScene.text)}\n当前对话NPC: ${npcLabel}${npcLabel ? ` (性别: ${npcGender})` : ''}`
             : "未知场景";
 
         const statsContext = `
@@ -1161,10 +1179,11 @@ ${knownFacts}` : "";
 【风格】克苏鲁恐怖，第二人称，简洁留白，感官细节优先。
 ${knowledgeContext}
 
-【NPC】
-- 检票员：机械冷漠，空洞眼神
-- 异常乘客：扭曲存在，视线会滑开
-- 沉默乘客：雕像般不动，眼中倒影角度不对
+【NPC 设定与性别限制 - 严禁混淆】
+- 检票员 (inspector)：男性。必须使用代词「他」。机械冷漠，空洞眼神。
+- 异常乘客 (anomaly)：男性。必须使用代词「他」。扭曲存在，视线会滑开。
+- 沉默乘客 (silent)：女性。必须使用代词「她」。雕像般不动，眼中倒影角度不对。
+- 如果当前场景没有明确 NPC，请以旁白视角进行叙述。
 
 【禁止】
 ⛔ 不说"我是AI"、不用emoji、不用网络用语、不提"游戏/玩家"

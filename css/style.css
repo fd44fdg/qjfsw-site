@@ -283,17 +283,39 @@ h3,
     }
 }
 
-/* Dialog Overlay - Galgame Style */
+/* Dialog Overlay - Lateral floating style (Left Side) */
 .dialog-overlay {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(5, 5, 10, 0.95) 0%, rgba(5, 5, 10, 0.85) 70%, rgba(5, 5, 10, 0) 100%);
-    padding: 1.5rem 2rem 1rem;
+    bottom: 40px;
+    left: 40px;
+    width: 420px;
+    background: rgba(8, 10, 15, 0.4);
+    /* Higher transparency */
+    padding: 1rem 1.5rem 0.5rem;
     z-index: 10;
-    backdrop-filter: blur(8px);
-    border-top: 1px solid var(--border-glass);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-layer {
+    position: absolute;
+    bottom: 0;
+    left: 55%;
+    /* Shift to right as chat is on left */
+    transform: translateX(-50%);
+    width: 60%;
+    height: 90%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 5;
+    transition: left 0.5s ease;
 }
 
 .dialog-header {
@@ -352,22 +374,31 @@ h3,
     font-style: normal;
 }
 
-/* Dialog Text Area - Compact for Overlay */
+/* Dialog Text Area - Scrollable with fade effect */
 .scene-text {
-    max-height: 250px;
+    max-height: 220px;
+    /* Allow more text in narrower container */
     overflow-y: auto;
     margin-bottom: 0.8rem;
-    padding-right: 0.5rem;
-    /* Prevent squishing */
+    padding-right: 1rem;
     flex-shrink: 0;
+    /* Fade effect at the top */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
 }
 
 .scene-text::-webkit-scrollbar {
-    width: 3px;
+    width: 4px;
+}
+
+.scene-text::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .scene-text::-webkit-scrollbar-thumb {
-    background: var(--border-glass);
+    background: var(--accent-cyan);
+    border-radius: 10px;
+    opacity: 0.5;
 }
 
 .scene-text p {
@@ -413,15 +444,15 @@ h3,
     position: relative;
 }
 
-/* Scene Navigation */
+/* Scene Navigation - Compact version */
 .scene-nav {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 1.5rem;
-    padding: 0.8rem 0 0.3rem;
-    border-top: 1px solid var(--border-glass);
-    margin-top: 0.5rem;
+    gap: 0.8rem;
+    padding: 0.6rem 0 0.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 0.4rem;
 }
 
 .nav-btn {
