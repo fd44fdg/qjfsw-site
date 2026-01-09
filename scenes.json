@@ -3,7 +3,7 @@
     "id": "start",
     "title": "夜行列车",
     "npc": "none",
-    "background": "列车差分2.png",
+    "background": "train_bg_2.png",
     "npcSprite": null,
     "conditions": null,
     "text": "列车在虚空中穿行。车轮碾过看不见的轨道，发出有节奏的轰鸣。窗外没有月亮，没有星星——只有一片纯粹、厚重的黑暗。冰冷的空气里有一股若有若无的铜锈味。你握着车票，指尖触到冰凉的纸张。你不记得自己是何时上车的。{loop>=2:这种麻木的熟悉感...又来了。}",
@@ -85,8 +85,8 @@
     "id": "inspector_01",
     "title": "例行检票",
     "npc": "inspector",
-    "background": "列车差分2.png",
-    "npcSprite": "检票员差分1.png",
+    "background": "train_bg_2.png",
+    "npcSprite": "inspector_1.png",
     "conditions": null,
     "text": "脚步声从走廊尽头传来——节奏完美，像节拍器一样精准。检票员的制服一尘不染，仿佛从未被穿过。他的嘴角挂着恰到好处的微笑，但那双眼睛...空洞得像是两口深井。\"您好。请出示车票。\" 他的声音没有任何情感波动。",
     "choices": [
@@ -132,8 +132,8 @@
     "id": "inspector_02",
     "title": "深入询问",
     "npc": "inspector",
-    "background": "列车差分2.png",
-    "npcSprite": "检票员差分2.png",
+    "background": "train_bg_2.png",
+    "npcSprite": "inspector_2.png",
     "conditions": {
       "flags": {
         "met_inspector": true
@@ -178,8 +178,8 @@
     "id": "inspector_03",
     "title": "重复的检票",
     "npc": "inspector",
-    "background": "列车差分3.png",
-    "npcSprite": "检票员差分3.png",
+    "background": "train_bg_3.png",
+    "npcSprite": "inspector_3.png",
     "conditions": {
       "loop": {
         "gte": 2
@@ -229,8 +229,8 @@
     "id": "anomaly_01",
     "title": "奇怪的乘客",
     "npc": "anomaly",
-    "background": "列车差分3.png",
-    "npcSprite": "异常乘客差分1.png",
+    "background": "train_bg_3.png",
+    "npcSprite": "anomaly_1.png",
     "conditions": null,
     "text": "那人坐在阴影的交界处，身体轮廓时而清晰、时而模糊，像是老旧电视上跳动的雪花噪点。每当你试图看清他的脸，视线就会莫名其妙地滑开，仿佛现实本身在拒绝你的注视。他似乎察觉到了什么，嘴角微微上扬——那笑容让你后脊发凉。",
     "choices": [
@@ -275,8 +275,8 @@
     "id": "anomaly_02",
     "title": "异常对话",
     "npc": "anomaly",
-    "background": "列车差分4.png",
-    "npcSprite": "异常乘客差分2.png",
+    "background": "train_bg_4.png",
+    "npcSprite": "anomaly_2.png",
     "conditions": {
       "flags": {
         "approached_anomaly": true
@@ -323,7 +323,7 @@
     "id": "rest_transition",
     "title": "半梦半醒",
     "npc": "none",
-    "background": "列车差分2.png",
+    "background": "train_bg_2.png",
     "npcSprite": null,
     "conditions": null,
     "text": "你轻轻合上眼。列车有节奏的撞击声成了唯一的慰藉。不知过了多久，你感到一阵莫名的寒意，让你不由自主地睁开了眼。",
@@ -361,8 +361,8 @@
     "id": "anomaly_03",
     "title": "现实裂隙",
     "npc": "anomaly",
-    "background": "列车差分4.png",
-    "npcSprite": "异常乘客差分3.png",
+    "background": "train_bg_4.png",
+    "npcSprite": "anomaly_3.png",
     "conditions": {
       "reality_noise": {
         "gte": 40
@@ -412,8 +412,8 @@
     "id": "silent_01",
     "title": "沉默的角落",
     "npc": "silent",
-    "background": "列车差分2.png",
-    "npcSprite": "沉默乘客.png",
+    "background": "train_bg_2.png",
+    "npcSprite": "silent_passenger.png",
     "conditions": null,
     "text": "车厢末端坐着一个女人。她的姿势从未改变——双手平放膝上，脊背挺直，像是被时间遗忘的雕像。她的眼睛直视虚空，眼眸深处倒映着列车的景象...但角度不太对，仿佛她看到的不是同一节车厢。无论发生什么，她从不说话。只是...存在着。",
     "choices": [
@@ -455,8 +455,8 @@
     "id": "silent_02",
     "title": "沉默者的凝视",
     "npc": "silent",
-    "background": "列车差分3.png",
-    "npcSprite": "沉默乘客.png",
+    "background": "train_bg_3.png",
+    "npcSprite": "silent_passenger.png",
     "conditions": {
       "flags": {
         "sat_with_silent": true
@@ -503,7 +503,7 @@
     "id": "corridor_01",
     "title": "无尽走廊",
     "npc": "none",
-    "background": "列车差分4.png",
+    "background": "train_bg_4.png",
     "npcSprite": null,
     "conditions": {
       "train_stability": {
@@ -550,7 +550,7 @@
     "id": "note_01",
     "title": "遗落的纸条",
     "npc": "none",
-    "background": "列车差分2.png",
+    "background": "train_bg_2.png",
     "npcSprite": null,
     "conditions": {
       "loop": {
@@ -608,7 +608,7 @@
     "id": "window_01",
     "title": "窗外的倒影",
     "npc": "none",
-    "background": "列车差分2.png",
+    "background": "train_bg_2.png",
     "npcSprite": null,
     "conditions": {
       "reality_noise": {
@@ -659,7 +659,7 @@
     "id": "event_glitch",
     "title": "现实错乱",
     "npc": "none",
-    "background": "glitch_effect.png",
+    "background": "train_bg_4.png",
     "random": true,
     "npcSprite": null,
     "conditions": {
@@ -695,7 +695,7 @@
     "id": "event_whisper",
     "title": "虚空耳语",
     "npc": "none",
-    "background": "dark_corridor.png",
+    "background": "corridor_view.png",
     "random": true,
     "npcSprite": null,
     "conditions": {

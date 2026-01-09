@@ -462,10 +462,10 @@
     // Fixed locations for navigation (can revisit, preserves dialogue)
     // Fixed locations for navigation (with separate dialogue history)
     const LOCATIONS = [
-        { id: 'start', name: '车厢', bg: '列车差分1.png', npc: null, defaultSceneId: 'start', savedHTML: null },
-        { id: 'inspector_area', name: '检票员', bg: '列车差分2.png', npc: '检票员差分1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
-        { id: 'anomaly_area', name: '异常乘客', bg: '列车差分3.png', npc: '异常乘客差分1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
-        { id: 'silent_area', name: '沉默乘客', bg: '列车差分2.png', npc: '沉默乘客.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
+        { id: 'start', name: '车厢', bg: 'train_bg_1.png', npc: null, defaultSceneId: 'start', savedHTML: null },
+        { id: 'inspector_area', name: '检票员', bg: 'train_bg_2.png', npc: 'inspector_1.png', npcType: 'inspector', defaultSceneId: 'inspector_01', savedHTML: null },
+        { id: 'anomaly_area', name: '异常乘客', bg: 'train_bg_3.png', npc: 'anomaly_1.png', npcType: 'anomaly', defaultSceneId: 'anomaly_01', savedHTML: null },
+        { id: 'silent_area', name: '沉默乘客', bg: 'train_bg_2.png', npc: 'silent_passenger.png', npcType: 'silent', defaultSceneId: 'silent_01', savedHTML: null },
         { id: 'corridor', name: '过道', bg: 'corridor_view.png', npc: null, defaultSceneId: 'corridor_01', savedHTML: null }
     ];
     let currentLocationIndex = 0;
@@ -631,7 +631,7 @@
 
     function getNpcLabel(npcType) {
         const labels = { inspector: '检票员', anomaly: '异常乘客', silent: '沉默乘客', none: '' };
-        return labels[npcType] || npcType || '';
+        return labels[npcType] !== undefined ? labels[npcType] : (npcType || '');
     }
 
     function processText(text) {
