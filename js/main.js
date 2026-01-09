@@ -139,7 +139,15 @@
         document.body.addEventListener('click', ensureBgmPlaying, { once: true });
 
         // Tutorial Events
-        DOM.btnTutorialStart.addEventListener('click', () => toggleTutorial(false));
+        if (DOM.btnTutorialStart) {
+            DOM.btnTutorialStart.addEventListener('click', () => toggleTutorial(false));
+        }
+
+        // Prevent accidental reset when clicking input
+        if (DOM.chatInput) {
+            DOM.chatInput.addEventListener('mousedown', (e) => e.stopPropagation());
+            DOM.chatInput.addEventListener('click', (e) => e.stopPropagation());
+        }
     }
 
     async function loadScenes() {
@@ -500,7 +508,7 @@
         if (choice.ending) { triggerEnding(choice.ending); return; }
         const ending = checkEndings();
         if (ending) { triggerEnding(ending); return; }
-        advanceToNextScene(choice.next);
+        advanceToNextScene(choice.next, true);
     }
 
     function applyEffects(effects) {
@@ -526,9 +534,20 @@
         }
     }
 
-    function advanceToNextScene(nextId) {
-        if (nextId) showScene(nextId);
-        else {
+    function advanceToNextScene(nextId, fromPredefinedChoice = false) {
+        // For AI-generated responses with null, stay in current scene
+        if (!fromPredefinedChoice && (!nextId || nextId === worldState.currentSceneId)) {
+            console.log('Staying in current scene:', worldState.currentSceneId);
+            const scene = scenes.find(s => s.id === worldState.currentSceneId);
+            if (scene) renderChoices(scene.choices);
+            return;
+        }
+
+        // For predefined choices with null, or explicit scene ID, proceed
+        if (nextId) {
+            showScene(nextId);
+        } else {
+            // Random selection for predefined choices
             const nextScene = selectNextScene();
             if (nextScene) showScene(nextScene.id);
             else triggerEnding('normal_arrival');
@@ -660,7 +679,7 @@
         cursor.style.animation = 'blink 1s infinite';
         p.appendChild(cursor);
 
-        const response = await fetch('http://localhost:3001/api/chat/stream', {
+        const response = await fetch(CONFIG.API_URL + '/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -673,66 +692,70 @@
 
         let fullContent = '';
         let narrativeText = '';
-        let jsonBlockStarted = false;
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
 
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const dataStr = line.replace('data: ', '').trim();
-                    if (dataStr === '[DONE]') break;
+                for (const line of lines) {
+                    if (line.trim().startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim();
+                        if (dataStr === '[DONE]') break;
 
-                    try {
-                        const json = JSON.parse(dataStr);
-                        const delta = json.choices[0]?.delta?.content || '';
+                        try {
+                            const json = JSON.parse(dataStr);
+                            const delta = json.choices[0]?.delta?.content || '';
+                            fullContent += delta;
 
-                        fullContent += delta;
+                            // Update narrative (everything before the first ```json)
+                            let currentNarrative = fullContent;
+                            if (fullContent.includes('```json')) {
+                                currentNarrative = fullContent.split('```json')[0];
+                            }
 
-                        // Identify JSON block start
-                        if (fullContent.includes('```json')) {
-                            const parts = fullContent.split('```json');
-                            // The narrative is the part before the block
-                            const cleanNarrative = parts[0].trim();
+                            // Filter out <think>...</think> blocks for UI display
+                            let displayNarrative = currentNarrative;
 
-                            // Update UI only if narrative changed
-                            if (cleanNarrative !== narrativeText) {
-                                narrativeText = cleanNarrative;
+                            // 1. Remove all complete <think>...</think> blocks (with flexible whitespace)
+                            displayNarrative = displayNarrative.replace(/<\s*think\s*>[\s\S]*?<\s*\/\s*think\s*>/gi, '');
+
+                            // 2. If there's an unclosed <think>, hide everything after it
+                            if (displayNarrative.includes('<think')) {
+                                displayNarrative = displayNarrative.split(/<\s*think/i)[0];
+                            }
+
+                            // 3. Remove any orphaned </think> tags
+                            displayNarrative = displayNarrative.replace(/<\s*\/\s*think\s*>/gi, '');
+
+                            displayNarrative = displayNarrative.trim();
+
+                            if (displayNarrative !== narrativeText) {
+                                narrativeText = displayNarrative;
                                 p.textContent = narrativeText;
                                 p.appendChild(cursor);
                                 DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
                             }
-                            jsonBlockStarted = true;
-                        } else if (!jsonBlockStarted) {
-                            // We are still in streaming narrative mode
-                            narrativeText = fullContent;
-                            p.textContent = narrativeText;
-                            p.appendChild(cursor);
-                            DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
+                        } catch (e) {
+                            // Partials
                         }
-                    } catch (e) {
-                        // Ignore incomplete chunks
                     }
                 }
             }
+        } finally {
+            if (p.contains(cursor)) p.removeChild(cursor);
         }
 
-        // Stream finished
-        p.removeChild(cursor); // Remove cursor
-
-        // Log History
-        const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
-        addToHistory('npc', narrativeText, currentScene?.title, getNpcLabel(currentScene?.npc));
+        // Final UI sync
+        p.textContent = narrativeText;
 
         // Attempt to parse the full JSON block from fullContent
         const jsonMatch = fullContent.match(/```json\s*([\s\S]*?)```/);
         if (jsonMatch) {
             try {
-                // Fix: Remove leading '+' from numbers which breaks JSON.parse
                 const cleanJsonStr = jsonMatch[1].replace(/:\s*\+(\d+)/g, ':$1');
                 const gameLogic = JSON.parse(cleanJsonStr);
                 if (gameLogic.effects) {
@@ -772,39 +795,48 @@
 - 异常觉察: ${worldState.anomaly_awareness}
         `.trim();
 
-        return {
-            messages: [
-                {
-                    role: "system",
-                    content: `你是「夜行列车」的游戏主持人和叙述者。克苏鲁风格恐怖悬疑游戏。
-玩家被困无限列车循环。
+        const systemPrompt = `【身份】你是「夜行列车」的叙述者，冷漠观察一切的声音。
+
+【风格】克苏鲁恐怖，第二人称，简洁留白，感官细节优先。
+
+【NPC】
+- 检票员：机械冷漠，空洞眼神
+- 异常乘客：扭曲存在，视线会滑开
+- 沉默乘客：雕像般不动，眼中倒影角度不对
+
+【禁止】
+⛔ 不说"我是AI"、不用emoji、不用网络用语、不提"游戏/玩家"
+
 ${sceneContext}
 ${statsContext}
 
-1. 以叙述者或NPC身份回应玩家。
-2. 背景识别：
-   - 玩家直接输入文本时，视为对话。
-   - 玩家输入以星号包裹（如 *你 XXX*）时，视为玩家正在执行的动作描述。
-3. 任务：
-   - 描述该动作带来的即时视觉/感觉反馈（克苏鲁/心理恐怖风格）。
-   - 如果是NPC正在交互，描述其反应。
-4. 格式要求：
-   - 第一部分：直接输出叙事文本（无Markdown格式），简洁生动。
-   - 第二部分：换行输出状态变更的JSON块：
-   \`\`\`json
-   {"effects":{"状态名":数值变化}, "next":"跳转场景ID", "ending":null}
-   \`\`\`
-   
-- 状态变更: train_stability, reality_noise, inspector_trust, anomaly_awareness
-- 如果该动作导致了明显的场景转移，请在 JSON 的 "next" 字段中指定场景 ID，否则设为 null。
-- **重要**：JSON数值严禁使用 "+" 号。
-`
-                },
+【可用场景ID】
+start, action_ticket, action_window, rest_transition, walk_away_transition,
+inspector_01, inspector_02, inspector_03, anomaly_01, anomaly_02, anomaly_03,
+silent_01, silent_02, corridor_01, note_01, window_01
+
+【输入处理】
+- 对话：直接回应
+- 动作（*xxx*）：描述感官反馈
+- 移动/视角（如"走向"、"查看"、"转身"）：必须在next字段指定场景ID
+
+【输出格式】严格遵守！
+1. 叙事（30-80字，纯文本）
+2. 换行后JSON块：
+\`\`\`json
+{"effects":{"train_stability":0,"reality_noise":0,"inspector_trust":0,"anomaly_awareness":0},"next":null,"ending":null}
+\`\`\`
+- 数值用整数，禁止"+"号
+- 必须完整输出JSON，不可截断`;
+
+        return {
+            messages: [
+                { role: "system", content: systemPrompt },
                 { role: "user", content: userText }
             ],
             model: CONFIG.MODEL,
-            temperature: 0.5,
-            max_tokens: 300,
+            temperature: 0.6,
+            max_tokens: 500,
             stream: true
         };
     }

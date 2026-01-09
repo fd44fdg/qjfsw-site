@@ -1,6 +1,6 @@
 const CONFIG = {
-    API_KEY: '', // Handled by Cloudflare Worker
+    API_KEY: '', // Handled by local proxy
     API_URL: 'https://nighttrain-api.desay-baiimi.workers.dev/api/chat',
-    MODEL: 'deepseek-ai/deepseek-v3'
+    MODEL: 'minimaxai/minimax-m2.1'
 };
-// Note: Requests are routed through Cloudflare Worker to bypass CORS and protect API key.
+// Note: Requests are routed through local proxy for testing.

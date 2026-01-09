@@ -1,101 +1,99 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 const PORT = 3001;
 
-// Enable CORS for frontend
+// Initialization check
+if (!process.env.API_KEY) {
+    console.error("❌ ERROR: API_KEY is missing in server/.env");
+} else {
+    const keyHint = process.env.API_KEY.trim().substring(0, 10) + "...";
+    console.log("✅ API_KEY loaded successfully (Hint: " + keyHint + ")");
+}
+
 app.use(cors());
 app.use(express.json());
 
-// Legacy non-streaming endpoint (optional, kept for fallback)
-app.post('/api/chat', async (req, res) => {
+// Shared Handler for Chat Requests
+const handleChatRequest = async (req, res) => {
     try {
         const payload = req.body;
-        const response = await axios.post('https://integrate.api.nvidia.com/v1/chat/completions', payload, {
+        if (req.path.includes('/stream')) {
+            payload.stream = true;
+        }
+
+        const apiKey = (process.env.API_KEY || '').trim();
+        const cleanKey = apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`;
+
+        console.log(`\n--- [${new Date().toLocaleTimeString()}] New Request ---`);
+        console.log(`Target Model: ${payload.model}`);
+        console.log(`Stream Mode: ${!!payload.stream}`);
+
+        // Remove potentially problematic fields if they exist from local testing
+        delete payload.max_tokens;
+
+        const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': process.env.API_KEY
-            }
-        });
-        res.json(response.data);
-    } catch (error) {
-        handleError(res, error);
-    }
-});
-
-// Streaming endpoint
-app.post('/api/chat/stream', async (req, res) => {
-    // Set headers for SSE
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    try {
-        const payload = { ...req.body, stream: true }; // Force stream=true
-
-        console.log("Starting stream request...");
-
-        const response = await axios.post('https://integrate.api.nvidia.com/v1/chat/completions', payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': process.env.API_KEY
+                'Authorization': cleanKey,
+                'Accept': payload.stream ? 'text/event-stream' : 'application/json'
             },
-            responseType: 'stream'
-        });
+            responseType: payload.stream ? 'stream' : 'json',
+            timeout: 60000 // Increase to 60s
+        };
 
-        // Forward the stream
-        response.data.on('data', (chunk) => {
-            const lines = chunk.toString().split('\n').filter(line => line.trim() !== '');
-            for (const line of lines) {
-                // Determine if it's data or error
-                if (line.startsWith('data: ')) {
-                    const dataStr = line.replace('data: ', '');
-                    if (dataStr === '[DONE]') {
-                        res.write('data: [DONE]\n\n');
-                        continue;
-                    }
-                    try {
-                        const json = JSON.parse(dataStr);
-                        // Forward valid chunks
-                        res.write(`data: ${JSON.stringify(json)}\n\n`);
-                    } catch (e) {
-                        console.warn("Failed to parse chunk:", dataStr);
-                    }
-                }
-            }
-        });
+        const response = await axios.post('https://integrate.api.nvidia.com/v1/chat/completions', payload, config);
 
-        response.data.on('end', () => {
-            res.end();
-            console.log("Stream ended.");
-        });
+        if (payload.stream) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
 
-        response.data.on('error', (err) => {
-            console.error("Stream error:", err);
-            res.write(`event: error\ndata: ${JSON.stringify({ error: err.message })}\n\n`);
-            res.end();
-        });
+            response.data.on('data', (chunk) => {
+                res.write(chunk);
+            });
 
+            response.data.on('end', () => {
+                console.log("✅ Stream completed");
+                res.end();
+            });
+
+            response.data.on('error', (err) => {
+                console.error("❌ Stream error:", err.message);
+                res.end();
+            });
+        } else {
+            console.log("✅ JSON response received");
+            res.json(response.data);
+        }
     } catch (error) {
-        console.error("Setup stream error:", error.message);
-        res.write(`event: error\ndata: ${JSON.stringify({ error: error.message })}\n\n`);
-        res.end();
-    }
-});
+        const status = error.response?.status || 500;
+        let errorData = "";
 
-function handleError(res, error) {
-    if (error.response) {
-        console.error("API Response Error:", error.response.status, error.response.data);
-        res.status(error.response.status).json(error.response.data);
-    } else {
-        console.error("Proxy Error:", error.message);
-        res.status(500).json({ error: error.message });
+        console.error(`❌ API ERROR ${status}`);
+
+        if (error.response?.data) {
+            if (typeof error.response.data.on === 'function') {
+                errorData = "Stream response error";
+            } else {
+                errorData = JSON.stringify(error.response.data);
+            }
+        } else {
+            errorData = error.message;
+        }
+
+        console.error("Detail:", errorData);
+        res.status(status).json({ error: errorData, status });
     }
-}
+};
+
+app.post('/api/chat', handleChatRequest);
+app.post('/api/chat/stream', handleChatRequest);
 
 app.listen(PORT, () => {
-    console.log(`Proxy server running on http://localhost:${PORT}`);
+    console.log(`🚀 Proxy server running on http://localhost:${PORT}`);
 });
