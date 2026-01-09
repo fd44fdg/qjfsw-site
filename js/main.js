@@ -355,6 +355,11 @@
         worldState.flags = {};
         worldState.playedScenes = [];
         worldState.dialogHistory = [];
+
+        // Reset Location History
+        currentLocationIndex = 0;
+        LOCATIONS.forEach(loc => loc.savedHTML = null);
+
         saveState();
         hideEnding();
         renderState();
@@ -379,6 +384,10 @@
         worldState.currentSceneId = 'start';
         worldState.sceneCount = 0;
         worldState.turnCount = 0;  // Reset turn count for new loop
+
+        // Reset Location History
+        currentLocationIndex = 0;
+        LOCATIONS.forEach(loc => loc.savedHTML = null);
 
         saveState();
         hideEnding();
@@ -454,9 +463,10 @@
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // 1. Save current dialogue to current location (if valid)
+        // 1. Save current dialogue to current location (ONLY if we represent that location)
+        // This prevents Random Events or temporary scenes from overwriting the location's history
         const currentLoc = LOCATIONS[currentLocationIndex];
-        if (currentLoc) {
+        if (currentLoc && worldState.currentSceneId === currentLoc.id) {
             currentLoc.savedHTML = DOM.sceneText.innerHTML;
         }
 
