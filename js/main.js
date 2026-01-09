@@ -68,7 +68,8 @@
         // Starting hints (loop 1, early game)
         { id: 'goal1', text: '也许该找找车票...', condition: (s) => s.loop === 1 && !s.flags.has_note && s.sceneCount < 3 },
         { id: 'explore', text: '试着在车厢里走动看看', condition: (s) => s.sceneCount < 2 },
-        { id: 'talk', text: '可以直接输入想说的话', condition: (s) => s.turnCount < 3 },
+        { id: 'talk_hint', text: '除了选项，我也可以直接输入想做的事...', condition: (s) => s.turnCount >= 2 && s.turnCount < 5 },
+        { id: 'action_hint', text: '即使界面没有按钮，我也许可以直接描述动作（例如：服药、检查口袋）', condition: (s) => s.interactionCount > 5 && s.loop === 1 },
 
         // Location-aware hints
         { id: 'inspector_hint', text: '检票员在等你出示车票', condition: (s) => s.currentSceneId === 'inspector_area' && !s.flags.met_inspector },
