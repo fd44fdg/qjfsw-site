@@ -407,8 +407,49 @@ h3,
 .chat-input-area {
     display: flex;
     gap: 0.8rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.8rem;
     position: relative;
+}
+
+/* Scene Navigation */
+.scene-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    opacity: 0.6;
+    transition: opacity var(--transition-base);
+}
+
+.scene-nav:hover {
+    opacity: 1;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    transition: all var(--transition-base);
+    font-family: inherit;
+}
+
+.nav-btn:hover {
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(255, 204, 51, 0.4);
+}
+
+.nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.nav-divider {
+    color: var(--border-glass);
+    font-size: 0.8rem;
 }
 
 #chat-input {

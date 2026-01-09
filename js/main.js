@@ -139,6 +139,10 @@
         DOM.btnHelp = document.getElementById('btn-help');
         DOM.thoughtsList = document.getElementById('thoughts-list');
         DOM.turnCounter = document.getElementById('turn-counter');
+
+        // Scene Navigation
+        DOM.btnNavPrev = document.getElementById('btn-nav-prev');
+        DOM.btnNavNext = document.getElementById('btn-nav-next');
     }
 
     function bindEvents() {
@@ -176,6 +180,14 @@
         if (DOM.chatInput) {
             DOM.chatInput.addEventListener('mousedown', (e) => e.stopPropagation());
             DOM.chatInput.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        // Scene Navigation Buttons
+        if (DOM.btnNavPrev) {
+            DOM.btnNavPrev.addEventListener('click', () => navigateScene('prev'));
+        }
+        if (DOM.btnNavNext) {
+            DOM.btnNavNext.addEventListener('click', () => navigateScene('next'));
         }
     }
 
@@ -423,6 +435,33 @@
         }, 300);
     }
 
+    // Manual scene navigation (train car buttons)
+    function navigateScene(direction) {
+        if (isTransitioning || isStreaming) return;
+        ensureBgmPlaying();
+
+        // Get available scenes (not played yet, conditions met)
+        const available = scenes.filter(scene => {
+            if (scene.id === worldState.currentSceneId) return false;  // Not current
+            if (scene.id === 'start') return false;  // Skip start scene
+            if (scene.id.includes('action_') || scene.id.includes('transition')) return false;  // Skip action scenes
+            if (worldState.playedScenes.includes(scene.id)) return false;  // Not replayed
+            if (scene.conditions && !checkConditions(scene.conditions)) return false;  // Must meet conditions
+            return true;
+        });
+
+        if (available.length === 0) {
+            // No new scenes available, just show a message
+            appendMessage('system', '走廊的尽头似乎没有其他车厢了...');
+            return;
+        }
+
+        // Random selection from available
+        const nextScene = available[randomInt(0, available.length - 1)];
+        worldState.sceneCount++;
+        advanceToNextScene(nextScene.id, true);
+    }
+
     function typewriter(element, htmlContent) {
         element.innerHTML = '';
         const tempDiv = document.createElement('div');
@@ -511,35 +550,61 @@
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // 1. Check for Dialogue or Event (Explicit type OR label contains quotes)
-        const isDialogue = choice.type === 'dialogue' || (!choice.type && /[""“]/.test(choice.label));
-        const isEvent = choice.type === 'event';
+        // Determine choice type:
+        // - dialogue: has quotes in label OR type === 'dialogue'
+        // - event: type === 'event' (action description sent to AI)
+        // - navigate: type === 'navigate' or 'action' WITH explicit next
+        // - standard action: anything else (applies effects, may check endings)
 
+        const hasQuotes = /["""“”]/.test(choice.label);
+        const isDialogue = choice.type === 'dialogue' || (!choice.type && hasQuotes);
+        const isEvent = choice.type === 'event';
+        const isNavigate = choice.type === 'navigate';
+        const isExplicitAction = choice.type === 'action' && choice.next;
+
+        // Dialogue and Event: Send to AI, no scene change
         if (isDialogue || isEvent) {
-            // Apply immediate effects first (if any)
             if (choice.effects) applyEffects(choice.effects);
             if (choice.setFlags) Object.assign(worldState.flags, choice.setFlags);
             renderState();
 
-            // Format for Chat
             const chatText = isEvent ? `*你 ${choice.label}*` : choice.label;
-
-            // Auto-send to Chat
             DOM.chatInput.value = chatText;
             handleChatSubmit();
-            return; // Hand over control to LLM/Streaming
+            return;  // AI handles response, no scene switch
         }
 
-        // 2. Standard Action Logic
+        // Navigate or Explicit Action: Apply effects and switch scene
+        if (isNavigate || isExplicitAction) {
+            if (choice.effects) applyEffects(choice.effects);
+            if (choice.setFlags) Object.assign(worldState.flags, choice.setFlags);
+            worldState.sceneCount++;
+            renderState();
+
+            if (choice.ending) { triggerEnding(choice.ending); return; }
+            advanceToNextScene(choice.next, true);
+            return;
+        }
+
+        // Standard Action (no type, no quotes, no next): Apply effects, check endings
         if (choice.effects) applyEffects(choice.effects);
         if (choice.setFlags) Object.assign(worldState.flags, choice.setFlags);
-
-        worldState.sceneCount++;
         renderState();
 
+        // Only check endings for standard actions (not dialogue/events)
         if (choice.ending) { triggerEnding(choice.ending); return; }
         const ending = checkEndings();
         if (ending) { triggerEnding(ending); return; }
+
+        // If no next specified and no ending, stay in current scene and re-render choices
+        if (!choice.next) {
+            const scene = scenes.find(s => s.id === worldState.currentSceneId);
+            if (scene) renderChoices(scene.choices);
+            return;
+        }
+
+        // Has next but wasn't handled above - treat as scene transition
+        worldState.sceneCount++;
         advanceToNextScene(choice.next, true);
     }
 
