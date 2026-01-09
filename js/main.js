@@ -81,6 +81,9 @@
     let scenes = [];
     let isTransitioning = false;
     let isStreaming = false;
+    let currentAbortController = null;  // For cancelling ongoing requests
+    let lastRequestTime = 0;  // Cooldown tracking
+    const REQUEST_COOLDOWN_MS = 1500;  // Minimum gap between requests
 
     // DOM Elements cache
     const DOM = {};
@@ -703,7 +706,25 @@
     // ============================================
     async function handleChatSubmit() {
         const text = DOM.chatInput.value.trim();
-        if (!text || isStreaming) return;
+        if (!text) return;
+
+        // Cooldown check - prevent rapid requests
+        const now = Date.now();
+        if (now - lastRequestTime < REQUEST_COOLDOWN_MS) {
+            console.log('Request cooldown active, please wait...');
+            return;
+        }
+
+        // Cancel any ongoing request
+        if (currentAbortController) {
+            currentAbortController.abort();
+            currentAbortController = null;
+        }
+
+        // Block if still streaming (shouldn't happen due to abort, but safety check)
+        if (isStreaming) return;
+
+        lastRequestTime = now;
 
         // UI Updates
         DOM.chatInput.value = '';
@@ -731,22 +752,28 @@
         }
 
         isStreaming = true;
+        currentAbortController = new AbortController();
         const prompt = constructPrompt(text);
 
         try {
-            await streamLLM(prompt);
+            await streamLLM(prompt, currentAbortController.signal);
         } catch (error) {
-            console.error('LLM Error:', error);
-            appendMessage('system', '意识连接断开... (请检查服务器/网络)');
+            if (error.name === 'AbortError') {
+                console.log('Request cancelled');
+            } else {
+                console.error('LLM Error:', error);
+                appendMessage('system', '意识连接断开... (请稍后重试)');
+            }
         } finally {
             DOM.chatInput.disabled = false;
             DOM.btnSendChat.disabled = false;
             DOM.chatInput.focus();
             isStreaming = false;
+            currentAbortController = null;
         }
     }
 
-    async function streamLLM(payload) {
+    async function streamLLM(payload, abortSignal) {
         // Create a new message container for the streaming response
         const p = document.createElement('p');
         p.className = 'message-npc';
@@ -754,98 +781,125 @@
 
         // Cursor effect
         const cursor = document.createElement('span');
-        cursor.textContent = '▋';
+        cursor.textContent = '○';
         cursor.style.animation = 'blink 1s infinite';
         p.appendChild(cursor);
 
-        const response = await fetch(CONFIG.API_URL + '/stream', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`Stream Error: ${response.status}`);
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        let fullContent = '';
-        let narrativeText = '';
+        // Timeout handling - 45 seconds max for the entire request
+        const timeoutId = setTimeout(() => {
+            if (abortSignal && !abortSignal.aborted) {
+                console.warn('Stream timeout - request taking too long');
+            }
+        }, 45000);
 
         try {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            const response = await fetch(CONFIG.API_URL + '/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: abortSignal
+            });
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+            if (!response.ok) throw new Error(`Stream Error: ${response.status}`);
 
-                for (const line of lines) {
-                    if (line.trim().startsWith('data: ')) {
-                        const dataStr = line.replace('data: ', '').trim();
-                        if (dataStr === '[DONE]') break;
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
 
-                        try {
-                            const json = JSON.parse(dataStr);
-                            const delta = json.choices[0]?.delta?.content || '';
-                            fullContent += delta;
+            let fullContent = '';
+            let narrativeText = '';
+            let lastChunkTime = Date.now();
 
-                            // Update narrative (everything before the first ```json)
-                            let currentNarrative = fullContent;
-                            if (fullContent.includes('```json')) {
-                                currentNarrative = fullContent.split('```json')[0];
+            try {
+                while (true) {
+                    // Check for stalled stream (no data for 15 seconds)
+                    const timeSinceLastChunk = Date.now() - lastChunkTime;
+                    if (timeSinceLastChunk > 15000) {
+                        console.warn('Stream stalled - no data received for 15s');
+                        break;
+                    }
+
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    lastChunkTime = Date.now();
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.trim().startsWith('data: ')) {
+                            const dataStr = line.replace('data: ', '').trim();
+                            if (dataStr === '[DONE]') break;
+
+                            try {
+                                const json = JSON.parse(dataStr);
+                                const delta = json.choices[0]?.delta?.content || '';
+                                fullContent += delta;
+
+                                // Update narrative (everything before the first ```json)
+                                let currentNarrative = fullContent;
+                                if (fullContent.includes('```json')) {
+                                    currentNarrative = fullContent.split('```json')[0];
+                                }
+
+                                // Filter out <think>...</think> blocks for UI display
+                                let displayNarrative = currentNarrative;
+
+                                // 1. Remove all complete <think>...</think> blocks
+                                displayNarrative = displayNarrative.replace(/<\s*think\s*>[\s\S]*?<\s*\/\s*think\s*>/gi, '');
+
+                                // 2. If there's an unclosed <think>, hide everything after it
+                                if (displayNarrative.includes('<think')) {
+                                    displayNarrative = displayNarrative.split(/<\s*think/i)[0];
+                                }
+
+                                // 3. Remove any orphaned </think> tags
+                                displayNarrative = displayNarrative.replace(/<\s*\/\s*think\s*>/gi, '');
+
+                                displayNarrative = displayNarrative.trim();
+
+                                if (displayNarrative !== narrativeText) {
+                                    narrativeText = displayNarrative;
+                                    p.textContent = narrativeText;
+                                    p.appendChild(cursor);
+                                    DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
+                                }
+                            } catch (e) {
+                                // Partial JSON - ignore
                             }
-
-                            // Filter out <think>...</think> blocks for UI display
-                            let displayNarrative = currentNarrative;
-
-                            // 1. Remove all complete <think>...</think> blocks (with flexible whitespace)
-                            displayNarrative = displayNarrative.replace(/<\s*think\s*>[\s\S]*?<\s*\/\s*think\s*>/gi, '');
-
-                            // 2. If there's an unclosed <think>, hide everything after it
-                            if (displayNarrative.includes('<think')) {
-                                displayNarrative = displayNarrative.split(/<\s*think/i)[0];
-                            }
-
-                            // 3. Remove any orphaned </think> tags
-                            displayNarrative = displayNarrative.replace(/<\s*\/\s*think\s*>/gi, '');
-
-                            displayNarrative = displayNarrative.trim();
-
-                            if (displayNarrative !== narrativeText) {
-                                narrativeText = displayNarrative;
-                                p.textContent = narrativeText;
-                                p.appendChild(cursor);
-                                DOM.sceneText.scrollTop = DOM.sceneText.scrollHeight;
-                            }
-                        } catch (e) {
-                            // Partials
                         }
                     }
                 }
+            } finally {
+                if (p.contains(cursor)) p.removeChild(cursor);
+            }
+
+            // Final UI sync
+            p.textContent = narrativeText;
+
+            // Log NPC response to history
+            const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
+            if (narrativeText) {
+                addToHistory('npc', narrativeText, currentScene?.title, getNpcLabel(currentScene?.npc));
+            }
+
+            // Attempt to parse the full JSON block from fullContent
+            const jsonMatch = fullContent.match(/```json\s*([\s\S]*?)```/);
+            if (jsonMatch) {
+                try {
+                    const cleanJsonStr = jsonMatch[1].replace(/:\s*\+(\d+)/g, ':$1');
+                    const gameLogic = JSON.parse(cleanJsonStr);
+                    if (gameLogic.effects) {
+                        applyEffects(gameLogic.effects);
+                        renderState();
+                    }
+                    if (gameLogic.ending) triggerEnding(gameLogic.ending);
+                    else if (gameLogic.next) setTimeout(() => advanceToNextScene(gameLogic.next), 1500);
+                } catch (e) {
+                    console.error("Failed to parse game logic JSON", e);
+                }
             }
         } finally {
-            if (p.contains(cursor)) p.removeChild(cursor);
-        }
-
-        // Final UI sync
-        p.textContent = narrativeText;
-
-        // Attempt to parse the full JSON block from fullContent
-        const jsonMatch = fullContent.match(/```json\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-            try {
-                const cleanJsonStr = jsonMatch[1].replace(/:\s*\+(\d+)/g, ':$1');
-                const gameLogic = JSON.parse(cleanJsonStr);
-                if (gameLogic.effects) {
-                    applyEffects(gameLogic.effects);
-                    renderState();
-                }
-                if (gameLogic.ending) triggerEnding(gameLogic.ending);
-                else if (gameLogic.next) setTimeout(() => advanceToNextScene(gameLogic.next), 1500);
-            } catch (e) {
-                console.error("Failed to parse game logic JSON", e);
-            }
+            clearTimeout(timeoutId);
         }
     }
 
