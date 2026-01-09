@@ -185,6 +185,21 @@
         // Scene Navigation
         DOM.btnNavPrev = document.getElementById('btn-nav-prev');
         DOM.btnNavNext = document.getElementById('btn-nav-next');
+
+        // Start placeholder animation
+        animatePlaceholder(DOM.chatInput);
+    }
+
+    function animatePlaceholder(inputElement) {
+        if (!inputElement) return;
+        const text = "输入你想说的话，或描述你的动作（将直接改变现实）...          ";
+        let index = 0;
+        setInterval(() => {
+            // Create a rotating string effect
+            const display = text.substring(index) + text.substring(0, index);
+            inputElement.setAttribute('placeholder', display);
+            index = (index + 1) % text.length;
+        }, 200); // 200ms update rate for readable scrolling
     }
 
     function bindEvents() {
