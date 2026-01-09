@@ -1167,7 +1167,8 @@
             // Log NPC response to history
             const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
             if (narrativeText) {
-                addToHistory('npc', narrativeText, currentScene?.title, getNpcLabel(currentScene?.npc));
+                const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
+                addToHistory('npc', narrativeText, currentScene?.title || '未知场景', getNpcLabel(currentScene?.npc));
             }
 
             // Attempt to parse the full JSON block from fullContent
