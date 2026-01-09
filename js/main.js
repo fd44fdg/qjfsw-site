@@ -27,7 +27,7 @@
         playedScenes: [],
         currentSceneId: 'start',
         sceneCount: 0,
-        // New: Dialog History
+        turnCount: 0,  // Dialogue turn counter for loop limit
         dialogHistory: [],
         bgmVolume: 0.5,
         isBgmMuted: false
@@ -54,8 +54,25 @@
             title: '普通到站',
             description: '列车缓缓停靠。你下车，站在陌生的站台上。身后的列车门关闭，你知道自己很快会再次登车。',
             condition: (state) => state.sceneCount >= 5
+        },
+        turn_limit: {
+            title: '列车到站',
+            description: '列车减速了。你感到一阵眩晕。\n\n...如果再来一次，你会问不一样的问题吗？',
+            condition: (state) => state.turnCount >= 15
         }
     };
+
+    // Thoughts data - hints shown in UI, changes based on worldState
+    const THOUGHTS = [
+        // Default thoughts (loop 1)
+        { id: 'inspector', text: '检票员为什么总是在观察你', condition: (s) => s.loop === 1 },
+        { id: 'passenger', text: '那个乘客似乎认识你', condition: (s) => s.loop === 1 },
+        { id: 'destination', text: '这列车真的会到站吗？', condition: (s) => true },
+        // Loop 2+ replacements
+        { id: 'inspector', text: '检票员的眼神...你好像见过', condition: (s) => s.loop >= 2 },
+        { id: 'passenger', text: '有些对话，你记得说过', condition: (s) => s.loop >= 2 },
+        { id: 'memory', text: '这一切...似曾相识', condition: (s) => s.loop >= 2 },
+    ];
 
     // ============================================
     // Game State
@@ -78,6 +95,7 @@
         loadOrCreateState();
         initAudio();
         renderState();
+        renderThoughts();
         showScene(worldState.currentSceneId);
         checkTutorial();
     }
@@ -115,6 +133,8 @@
         // Tutorial Elements
         DOM.tutorialOverlay = document.getElementById('tutorial-overlay');
         DOM.btnTutorialStart = document.getElementById('btn-tutorial-start');
+        DOM.btnHelp = document.getElementById('btn-help');
+        DOM.thoughtsList = document.getElementById('thoughts-list');
     }
 
     function bindEvents() {
@@ -141,6 +161,11 @@
         // Tutorial Events
         if (DOM.btnTutorialStart) {
             DOM.btnTutorialStart.addEventListener('click', () => toggleTutorial(false));
+        }
+
+        // Help Button
+        if (DOM.btnHelp) {
+            DOM.btnHelp.addEventListener('click', () => toggleTutorial(true));
         }
 
         // Prevent accidental reset when clicking input
@@ -317,6 +342,7 @@
         saveState();
         hideEnding();
         renderState();
+        renderThoughts();
         showScene('start');
     }
 
@@ -336,10 +362,12 @@
         worldState.playedScenes = [];
         worldState.currentSceneId = 'start';
         worldState.sceneCount = 0;
+        worldState.turnCount = 0;  // Reset turn count for new loop
 
         saveState();
         hideEnding();
         renderState();
+        renderThoughts();  // Update thoughts for new loop
         showScene('start');
     }
 
@@ -625,6 +653,44 @@
         DOM.statNoise.style.color = worldState.reality_noise >= 60 ? '#b8a' : '';
     }
 
+    // ============================================
+    // Thoughts System (Hint UI)
+    // ============================================
+    function renderThoughts() {
+        if (!DOM.thoughtsList) return;
+        DOM.thoughtsList.innerHTML = '';
+
+        // Get applicable thoughts, later entries override earlier ones with same id
+        const thoughtsMap = new Map();
+        const previousThoughts = new Map();
+
+        // First pass: collect what was shown before (for animation)
+        DOM.thoughtsList.querySelectorAll('li').forEach(li => {
+            previousThoughts.set(li.dataset.id, li.textContent);
+        });
+
+        // Build current thoughts (later entries with same id override earlier)
+        THOUGHTS.forEach(thought => {
+            if (thought.condition(worldState)) {
+                thoughtsMap.set(thought.id, thought.text);
+            }
+        });
+
+        // Render thoughts
+        thoughtsMap.forEach((text, id) => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            li.dataset.id = id;
+
+            // Add animation if text changed from previous
+            if (previousThoughts.has(id) && previousThoughts.get(id) !== text) {
+                li.classList.add('thought-updated');
+            }
+
+            DOM.thoughtsList.appendChild(li);
+        });
+    }
+
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
     function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
     function getFallbackScenes() { /* ... kept simple ... */ return [{ id: 'start', title: 'Fallback', npc: 'none', text: 'Error loading scenes', choices: [] }]; }
@@ -650,6 +716,19 @@
         // Log History
         addToHistory('user', text, currentScene?.title);
         appendMessage('user', text);
+
+        // Increment turn count
+        worldState.turnCount++;
+        saveState();
+
+        // Check for turn limit ending (first loop soft failure)
+        if (worldState.turnCount >= 15) {
+            isStreaming = false;
+            triggerEnding('turn_limit');
+            DOM.chatInput.disabled = false;
+            DOM.btnSendChat.disabled = false;
+            return;
+        }
 
         isStreaming = true;
         const prompt = constructPrompt(text);
@@ -827,7 +906,17 @@ silent_01, silent_02, corridor_01, note_01, window_01
 {"effects":{"train_stability":0,"reality_noise":0,"inspector_trust":0,"anomaly_awareness":0},"next":null,"ending":null}
 \`\`\`
 - 数值用整数，禁止"+"号
-- 必须完整输出JSON，不可截断`;
+- 必须完整输出JSON，不可截断
+
+【NPC行为约束】你必须遵守以下规则：
+1. 禁止：直接解释游戏规则、世界真相、循环机制
+2. 禁止：变成问答机器，不能有问必答
+3. 当玩家问题偏离核心秘密时：含糊、转移话题、重复之前说过的话、假装没听清
+4. 当玩家"接近正确方向"时（涉及列车本质、循环、乘客身份）：
+   - 给出更有价值的暗示
+   - 态度可以稍微松动
+   - 但仍然不能直接说出答案
+5. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话`;
 
         return {
             messages: [

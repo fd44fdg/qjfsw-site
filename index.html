@@ -39,6 +39,7 @@
             <span class="status-label">觉察</span>
             <span class="status-value" id="stat-awareness">0</span>
         </div>
+        <button class="btn-help" id="btn-help" title="帮助">?</button>
     </header>
 
     <!-- Main Game Container -->
@@ -76,6 +77,14 @@
                 <button class="btn-control btn-danger" id="btn-clear-save">清空存档</button>
             </div>
             <div class="panel-divider"></div>
+            <!-- Thoughts Container (Hint System) -->
+            <div class="thoughts-container" id="thoughts-container">
+                <div class="thoughts-header">你感觉有些事情还没弄明白...</div>
+                <ul class="thoughts-list" id="thoughts-list">
+                    <!-- Dynamically populated -->
+                </ul>
+            </div>
+            <div class="panel-divider"></div>
             <!-- Choices Container -->
             <div class="choices-container" id="choices-container">
                 <!-- Choices will be inserted here -->
@@ -86,37 +95,29 @@
     <!-- Tutorial Overlay -->
     <div class="tutorial-overlay" id="tutorial-overlay">
         <div class="tutorial-card">
-            <h1 class="tutorial-title">乘车指南 | Passenger Guide</h1>
-            <p class="tutorial-desc">你被困在了一列永无止境的夜行列车上。在这里，现实与幻觉的边界已经模糊。通过对话和行动，你将在这个循环中寻找真相。</p>
+            <h1 class="tutorial-title">夜行列车</h1>
 
-            <div class="tutorial-stats-grid">
-                <div class="tutorial-stat-item">
-                    <span class="tutorial-stat-name">循环 (Loop)</span>
-                    <p class="tutorial-stat-detail">你进入这片虚无的次数。有些记忆会随之带入下一次循环。</p>
-                </div>
-                <div class="tutorial-stat-item">
-                    <span class="tutorial-stat-name">稳定度 (Stability)</span>
-                    <p class="tutorial-stat-detail">衡量列车与现实结构的完整性。归零将导致彻底的崩塌。</p>
-                </div>
-                <div class="tutorial-stat-item">
-                    <span class="tutorial-stat-name">噪声 (Noise)</span>
-                    <p class="tutorial-stat-detail">对现实的扭曲。越高，你看到的色彩就越诡异，世界也越危险。</p>
-                </div>
-                <div class="tutorial-stat-item">
-                    <span class="tutorial-stat-name">信任 (Trust)</span>
-                    <p class="tutorial-stat-detail">你与秩序化身（检票员）的关系。高信任能保你安全，但也可能将你永远留在车上。</p>
-                </div>
-                <div class="tutorial-stat-item">
-                    <span class="tutorial-stat-name">觉察 (Awareness)</span>
-                    <p class="tutorial-stat-detail">对列车真相的认知。只有看清一切，才能找到真正的出路。</p>
-                </div>
+            <div class="tutorial-opening">
+                <p>你睁开眼，发现自己坐在一列夜行列车上。</p>
+                <p>窗外只有无尽的黑暗。</p>
+                <p class="tutorial-break"></p>
+                <p>车厢里有几个人，但没人看你。</p>
+                <p>——除了那个检票员。</p>
+                <p class="tutorial-break"></p>
+                <p>你不记得自己为什么在这里。</p>
+                <p>但有一件事很清楚：</p>
+                <p class="tutorial-break"></p>
+                <p class="tutorial-hint">这列车上的人，有人知道答案。</p>
+                <p class="tutorial-hint">他们不会主动告诉你。</p>
             </div>
 
-            <div class="tutorial-goal">
-                <p>目标：在一局内至少经历 5 个场景，通过互动和选择，解锁不同的结局。注意你的数值平衡。</p>
+            <div class="tutorial-tips">
+                <p class="tutorial-tip">💬 你有 <strong>15 次对话机会</strong>，之后列车将到站。</p>
+                <p class="tutorial-tip">🔄 到站后，你可以再次登车——某些记忆会留下。</p>
+                <p class="tutorial-tip">❓ 点击右上角 <strong>[?]</strong> 可随时查看帮助。</p>
             </div>
 
-            <button class="btn-tutorial-start" id="btn-tutorial-start">接受命运</button>
+            <button class="btn-tutorial-start" id="btn-tutorial-start">我明白了</button>
         </div>
     </div>
 
