@@ -420,8 +420,8 @@
       {
         "label": "尝试与她交谈",
         "effects": {
-          "reality_noise": 10,
-          "anomaly_awareness": 5
+          "reality_noise": 5,
+          "anomaly_awareness": 2
         },
         "setFlags": {
           "talked_to_silent": true
@@ -432,8 +432,8 @@
       {
         "label": "坐在她旁边",
         "effects": {
-          "train_stability": -5,
-          "reality_noise": 5
+          "train_stability": -2,
+          "reality_noise": 3
         },
         "setFlags": {
           "sat_with_silent": true
