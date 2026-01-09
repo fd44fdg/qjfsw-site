@@ -147,6 +147,7 @@
         DOM.btnHistory = document.getElementById('btn-history');
         DOM.bgm = document.getElementById('bgm');
         DOM.btnBgm = document.getElementById('btn-bgm');
+        DOM.btnBgmMobile = document.getElementById('btn-bgm-mobile');
 
         // Tutorial Elements
         DOM.tutorialOverlay = document.getElementById('tutorial-overlay');
@@ -177,6 +178,9 @@
 
         // BGM Events
         DOM.btnBgm.addEventListener('click', toggleBgm);
+        if (DOM.btnBgmMobile) {
+            DOM.btnBgmMobile.addEventListener('click', toggleBgm);
+        }
 
         // Auto-play BGM interaction check
         document.body.addEventListener('click', ensureBgmPlaying, { once: true });
@@ -235,9 +239,11 @@
         if (worldState.isBgmMuted) {
             DOM.bgm.muted = true;
             DOM.btnBgm.textContent = '🔇 BGM';
+            if (DOM.btnBgmMobile) DOM.btnBgmMobile.textContent = '🔇';
         } else {
             DOM.bgm.muted = false;
             DOM.btnBgm.textContent = '🔊 BGM';
+            if (DOM.btnBgmMobile) DOM.btnBgmMobile.textContent = '🔊';
         }
         DOM.bgm.volume = worldState.bgmVolume || 0.5;
         updateBgmTrack();
@@ -311,9 +317,11 @@
 
         if (worldState.isBgmMuted) {
             DOM.btnBgm.textContent = '🔇 BGM';
+            if (DOM.btnBgmMobile) DOM.btnBgmMobile.textContent = '🔇';
             DOM.bgm.pause();
         } else {
             DOM.btnBgm.textContent = '🔊 BGM';
+            if (DOM.btnBgmMobile) DOM.btnBgmMobile.textContent = '🔊';
             if (!DOM.bgm.src) updateBgmTrack();
             DOM.bgm.play().catch(e => console.error(e));
         }
