@@ -470,6 +470,20 @@
     ];
     let currentLocationIndex = 0;
 
+    // Helper to find and sync current location based on worldState
+    function syncLocationIndex() {
+        const currentId = worldState.currentSceneId;
+        // Find index of location that matches ID or is a prefix
+        const index = LOCATIONS.findIndex(loc =>
+            currentId === loc.id || currentId.startsWith(loc.id + '_') || (loc.defaultSceneId && currentId === loc.defaultSceneId)
+        );
+        if (index !== -1) {
+            currentLocationIndex = index;
+            return true;
+        }
+        return false;
+    }
+
     // Random Events
     const RANDOM_EVENTS = ['event_glitch', 'event_whisper'];
 
@@ -478,10 +492,10 @@
         if (isTransitioning || isStreaming) return;
         ensureBgmPlaying();
 
-        // 1. Save current dialogue to current location
-        // SAVE condition: Only if NOT in a random event (glitches/whispers)
-        // We trust currentLocationIndex represents where we are physically
+        // 1. Sync index and save current dialogue
+        // This ensures if we jumped to a location via dialogue, we save to the CORRECT place
         if (!worldState.currentSceneId.startsWith('event_')) {
+            syncLocationIndex(); // IMPORTANT: Update index based on actual current scene
             const currentLoc = LOCATIONS[currentLocationIndex];
             if (currentLoc) {
                 currentLoc.savedHTML = DOM.sceneText.innerHTML;
