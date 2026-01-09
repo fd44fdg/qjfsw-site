@@ -221,20 +221,87 @@
     // ============================================
     // Audio System
     // ============================================
+    // ============================================
+    // Audio System
+    // ============================================
+    const AUDIO_TRACKS = {
+        ambient: 'assets/audio/bgm_ambient.mp3',
+        suspense: 'assets/audio/bgm_suspense.mp3'
+    };
+
+    let currentTrack = null;
+
     function initAudio() {
         if (worldState.isBgmMuted) {
             DOM.bgm.muted = true;
             DOM.btnBgm.textContent = '🔇 BGM';
-            DOM.btnBgm.classList.add('muted');
         } else {
             DOM.bgm.muted = false;
             DOM.btnBgm.textContent = '🔊 BGM';
         }
         DOM.bgm.volume = worldState.bgmVolume || 0.5;
+        updateBgmTrack();
+    }
+
+    function updateBgmTrack() {
+        // Determine which track to play based on state
+        const targetTrack = (worldState.reality_noise > 40 || worldState.train_stability < 40)
+            ? 'suspense'
+            : 'ambient';
+
+        if (currentTrack !== targetTrack) {
+            fadeOutAndSwitch(targetTrack);
+        }
+    }
+
+    function fadeOutAndSwitch(trackKey) {
+        const nextSrc = AUDIO_TRACKS[trackKey];
+        if (!nextSrc) return;
+
+        currentTrack = trackKey;
+
+        // If nothing is playing, just start
+        if (!DOM.bgm.src || DOM.bgm.paused) {
+            DOM.bgm.src = nextSrc;
+            if (!worldState.isBgmMuted) {
+                DOM.bgm.play().catch(e => console.log("First play blocked"));
+            }
+            return;
+        }
+
+        // Cross-fade (simple version)
+        let vol = DOM.bgm.volume;
+        const interval = setInterval(() => {
+            vol -= 0.05;
+            if (vol <= 0) {
+                clearInterval(interval);
+                DOM.bgm.src = nextSrc;
+                DOM.bgm.load();
+                DOM.bgm.play().then(() => {
+                    fadeIn();
+                }).catch(e => console.log(e));
+            } else {
+                DOM.bgm.volume = vol;
+            }
+        }, 50);
+    }
+
+    function fadeIn() {
+        let vol = 0;
+        const targetVol = worldState.bgmVolume || 0.5;
+        const interval = setInterval(() => {
+            vol += 0.05;
+            if (vol >= targetVol) {
+                clearInterval(interval);
+                DOM.bgm.volume = targetVol;
+            } else {
+                DOM.bgm.volume = vol;
+            }
+        }, 50);
     }
 
     function ensureBgmPlaying() {
-        if (!DOM.bgm.paused) return;
+        if (!DOM.bgm.paused || worldState.isBgmMuted) return;
         DOM.bgm.play().catch(e => console.log("Audio autoplay prevented"));
     }
 
@@ -244,8 +311,10 @@
 
         if (worldState.isBgmMuted) {
             DOM.btnBgm.textContent = '🔇 BGM';
+            DOM.bgm.pause();
         } else {
             DOM.btnBgm.textContent = '🔊 BGM';
+            if (!DOM.bgm.src) updateBgmTrack();
             DOM.bgm.play().catch(e => console.error(e));
         }
         saveState();
@@ -741,6 +810,9 @@
         if (prevStability - worldState.train_stability >= 10 || worldState.reality_noise - prevNoise >= 15) {
             triggerScreenShake();
         }
+
+        // Check for BGM track switch
+        updateBgmTrack();
     }
 
     function triggerScreenShake() {
