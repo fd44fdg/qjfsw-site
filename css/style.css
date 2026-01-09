@@ -862,54 +862,79 @@ h3,
 /* Mobile Adaptation (+ New Breakpoints) */
 @media (max-width: 600px) {
 
-    /* Layout Reset */
+    /* Hide Non-Essential Elements */
+    .dialog-header,
+    .choices-panel,
+    .thoughts-container,
+    .turn-counter,
+    .scene-header,
+    .nav-divider {
+        display: none !important;
+    }
+
+    /* Slime & Float Dialog Overlay */
     .dialog-overlay {
         left: 50% !important;
         transform: translateX(-50%) !important;
-        bottom: 10px !important;
-        width: 92% !important;
+        bottom: 12px !important;
+        width: 94% !important;
         max-width: none !important;
-        padding: 0.8rem 1rem 0.4rem !important;
+        padding: 0.8rem 1rem 0.5rem !important;
+        background: rgba(8, 10, 15, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
     }
 
     .npc-layer {
         left: 50% !important;
-        width: 80% !important;
-        height: 75% !important;
+        width: 85% !important;
+        height: 80% !important;
+        z-index: 5 !important;
     }
 
     .status-bar {
-        gap: 0.5rem;
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
-
-    .status-label {
-        display: none;
+        gap: 0.4rem;
+        padding: 0.4rem;
+        background: rgba(0, 0, 0, 0.2);
     }
 
     .scene-text {
-        max-height: 120px !important;
-        font-size: 0.95rem;
+        max-height: 140px !important;
+        margin-bottom: 0.6rem !important;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
+    }
+
+    .scene-text p {
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+        margin-bottom: 0.4rem !important;
     }
 
     .chat-input-area {
-        gap: 0.5rem;
+        gap: 0.4rem !important;
     }
 
     #chat-input {
-        padding: 0.6rem 0.8rem;
-        font-size: 16px;
-        /* Avoid iOS zoom */
+        padding: 0.5rem 0.8rem !important;
+        font-size: 16px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
     }
 
     #btn-send-chat {
-        padding: 0 1rem;
+        padding: 0 0.8rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .scene-nav {
+        padding: 0.4rem 0 0.2rem !important;
+        gap: 0.4rem !important;
     }
 
     .nav-btn {
-        padding: 0.4rem 0.5rem;
-        font-size: 0.7rem;
+        padding: 0.4rem 0.4rem !important;
+        font-size: 0.65rem !important;
     }
 }
 
