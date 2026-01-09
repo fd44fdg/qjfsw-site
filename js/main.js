@@ -138,6 +138,7 @@
         DOM.btnTutorialStart = document.getElementById('btn-tutorial-start');
         DOM.btnHelp = document.getElementById('btn-help');
         DOM.thoughtsList = document.getElementById('thoughts-list');
+        DOM.turnCounter = document.getElementById('turn-counter');
     }
 
     function bindEvents() {
@@ -654,6 +655,14 @@
 
         DOM.statStability.style.color = worldState.train_stability <= 30 ? '#c77' : '';
         DOM.statNoise.style.color = worldState.reality_noise >= 60 ? '#b8a' : '';
+
+        // Update turn counter
+        const turnsRemaining = Math.max(0, 15 - worldState.turnCount);
+        if (DOM.turnCounter) {
+            DOM.turnCounter.textContent = `💬 ${turnsRemaining}`;
+            DOM.turnCounter.style.color = turnsRemaining <= 3 ? '#ff6b6b' :
+                turnsRemaining <= 7 ? '#ffd93d' : '';
+        }
     }
 
     // ============================================
@@ -972,11 +981,24 @@ silent_01, silent_02, corridor_01, note_01, window_01
    - 但仍然不能直接说出答案
 5. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话`;
 
+        // Build conversation history (last 6 exchanges for context)
+        const recentHistory = worldState.dialogHistory
+            .filter(entry => entry.role === 'user' || entry.role === 'npc')
+            .slice(-6)  // Last 6 messages
+            .map(entry => ({
+                role: entry.role === 'user' ? 'user' : 'assistant',
+                content: entry.text
+            }));
+
+        // Construct messages array with history
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...recentHistory,
+            { role: "user", content: userText }
+        ];
+
         return {
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userText }
-            ],
+            messages: messages,
             model: CONFIG.MODEL,
             temperature: 0.6,
             max_tokens: 500,

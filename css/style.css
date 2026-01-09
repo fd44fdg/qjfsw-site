@@ -986,11 +986,27 @@ h3,
     margin-bottom: 0.5rem;
 }
 
+.thoughts-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
 .thoughts-header {
     color: var(--text-dim);
-    margin-bottom: 0.6rem;
     font-style: italic;
     font-size: 0.75rem;
+}
+
+.turn-counter {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 243, 255, 0.1);
+    border-radius: 4px;
+    transition: color 0.3s, background 0.3s;
 }
 
 .thoughts-list {
