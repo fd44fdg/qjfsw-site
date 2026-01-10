@@ -398,13 +398,14 @@
     // ============================================
     // History System
     // ============================================
-    function addToHistory(role, text, sceneTitle, npcName) {
+    function addToHistory(role, text, sceneTitle, npcName, npcType) {
         if (!text) return;
         const entry = {
             role,
             text,
             sceneTitle: sceneTitle || '未知场景',
             npcName: npcName || '',
+            npcType: npcType || 'none',
             timestamp: Date.now()
         };
 
@@ -1058,7 +1059,7 @@
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
 
         // Log History
-        addToHistory('user', text, currentScene?.title);
+        addToHistory('user', text, currentScene?.title, null, currentScene?.npc || 'none');
         appendMessage('user', text);
 
         // Increment turn count
@@ -1208,8 +1209,8 @@
             // Log NPC response to history
             const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
             if (narrativeText) {
-                const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
-                addToHistory('npc', narrativeText, currentScene?.title || '未知场景', getNpcLabel(currentScene?.npc));
+                const currentNpcType = currentScene?.npc || 'none';
+                addToHistory('npc', narrativeText, currentScene?.title || '未知场景', getNpcLabel(currentNpcType), currentNpcType);
             }
 
             // Attempt to parse the full JSON block from fullContent
@@ -1385,10 +1386,10 @@ ${knowledgeContext}
    - 但仍然不能直接说出答案
 6. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话`;
 
-        // Build conversation history (last 6 exchanges for context)
+        // Build conversation history (last 6 exchanges with THIS NPC for context)
         const recentHistory = worldState.dialogHistory
-            .filter(entry => entry.role === 'user' || entry.role === 'npc')
-            .slice(-6)  // Last 6 messages
+            .filter(entry => (entry.role === 'user' || entry.role === 'npc') && entry.npcType === npcType)
+            .slice(-6)  // Last 6 messages with this NPC
             .map(entry => ({
                 role: entry.role === 'user' ? 'user' : 'assistant',
                 content: entry.text
