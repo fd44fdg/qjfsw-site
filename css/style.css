@@ -940,6 +940,20 @@ h3,
     #btn-bgm-mobile {
         display: flex !important;
     }
+
+    #btn-new-game-mobile {
+        display: flex !important;
+        font-size: 1.1rem !important;
+        color: var(--accent-gold) !important;
+    }
+
+    /* Active feedback for mobile buttons */
+    .btn-help:active,
+    .nav-btn:active,
+    #btn-send-chat:active {
+        transform: scale(0.92);
+        opacity: 0.7;
+    }
 }
 
 /* Tutorial Overlay Settings */
@@ -1157,7 +1171,8 @@ h3,
     flex-shrink: 0;
 }
 
-#btn-bgm-mobile {
+#btn-bgm-mobile,
+#btn-new-game-mobile {
     display: none;
     /* Desktop hidden */
 }

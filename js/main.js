@@ -182,6 +182,7 @@
         DOM.bgm = document.getElementById('bgm');
         DOM.btnBgm = document.getElementById('btn-bgm');
         DOM.btnBgmMobile = document.getElementById('btn-bgm-mobile');
+        DOM.btnNewGameMobile = document.getElementById('btn-new-game-mobile');
 
         // Tutorial Elements
         DOM.tutorialOverlay = document.getElementById('tutorial-overlay');
@@ -212,6 +213,9 @@
 
     function bindEvents() {
         DOM.btnNewGame.addEventListener('click', startNewGame);
+        if (DOM.btnNewGameMobile) {
+            DOM.btnNewGameMobile.addEventListener('click', startNewGame);
+        }
         DOM.btnClearSave.addEventListener('click', clearSaveWithConfirm);
         DOM.btnNextLoop.addEventListener('click', startNextLoop);
 
