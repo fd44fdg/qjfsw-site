@@ -480,7 +480,7 @@
         "ending": null
       },
       {
-        "label": "对他点头",
+        "label": "向她点头",
         "effects": {
           "anomaly_awareness": 10
         },

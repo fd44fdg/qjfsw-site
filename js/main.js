@@ -29,6 +29,7 @@
         sceneCount: 0,
         turnCount: 0,  // Dialogue turn counter for loop limit
         dialogHistory: [],
+        currentNpcType: 'none', // Track current NPC for context isolation
         bgmVolume: 0.5,
         isBgmMuted: false
     };
@@ -117,26 +118,33 @@
         renderThoughts();
         showScene(worldState.currentSceneId);
 
-        // Restore recent dialogue for context (last 10 messages) on reload
+        // Restore recent dialogue for context (filter by current NPC) on reload
+        // Restore recent dialogue for context (match current NPC) on reload
         if (worldState.currentSceneId !== 'start' && worldState.dialogHistory && worldState.dialogHistory.length > 0) {
             setTimeout(() => {
                 // Only restore if the scene text is mostly empty (i.e., just the initial description)
                 if (DOM.sceneText.children.length <= 1) {
-                    const separator = document.createElement('div');
-                    separator.className = 'history-separator';
-                    separator.textContent = '--- 记忆碎片 ---';
-                    separator.style.textAlign = 'center';
-                    separator.style.opacity = '0.5';
-                    separator.style.margin = '10px 0';
-                    separator.style.fontSize = '0.8em';
-                    DOM.sceneText.appendChild(separator);
+                    const currentNpc = worldState.currentNpcType || 'none';
+                    const filteredHistory = worldState.dialogHistory
+                        .filter(entry => entry.npcType === currentNpc)
+                        .slice(-10);
 
-                    const recent = worldState.dialogHistory.slice(-10);
-                    recent.forEach(entry => {
-                        if (entry.role === 'user' || entry.role === 'npc') {
-                            appendMessage(entry.role, entry.text);
-                        }
-                    });
+                    if (filteredHistory.length > 0) {
+                        const separator = document.createElement('div');
+                        separator.className = 'history-separator';
+                        separator.textContent = '--- 记忆碎片 ---';
+                        separator.style.textAlign = 'center';
+                        separator.style.opacity = '0.5';
+                        separator.style.margin = '10px 0';
+                        separator.style.fontSize = '0.8em';
+                        DOM.sceneText.appendChild(separator);
+
+                        filteredHistory.forEach(entry => {
+                            if (entry.role === 'user' || entry.role === 'npc') {
+                                appendMessage(entry.role, entry.text);
+                            }
+                        });
+                    }
                 }
             }, 100);
         }
@@ -400,12 +408,16 @@
     // ============================================
     function addToHistory(role, text, sceneTitle, npcName, npcType) {
         if (!text) return;
+
+        // Use provided npcType or fallback to current worldState context
+        const contextNpc = npcType || worldState.currentNpcType || 'none';
+
         const entry = {
             role,
             text,
             sceneTitle: sceneTitle || '未知场景',
             npcName: npcName || '',
-            npcType: npcType || 'none',
+            npcType: contextNpc,
             timestamp: Date.now()
         };
 
@@ -522,6 +534,7 @@
         worldState.anomaly_awareness = Math.min(100, Math.floor(worldState.anomaly_awareness * 0.5) + 10);
         worldState.playedScenes = [];
         worldState.currentSceneId = 'start';
+        worldState.currentNpcType = 'none'; // Reset NPC type for new loop
         worldState.sceneCount = 0;
         worldState.turnCount = 0;  // Reset turn count for new loop
 
@@ -552,6 +565,8 @@
 
         isTransitioning = true;
         worldState.currentSceneId = sceneId;
+        worldState.currentNpcType = scene.npc || 'none'; // Major fix: update currentNpcType here
+        saveState(); // Save state immediately after updating currentSceneId and currentNpcType
 
         if (!worldState.playedScenes.includes(sceneId)) {
             worldState.playedScenes.push(sceneId);
@@ -666,9 +681,10 @@
             const npcLabel = loc.npcType ? getNpcLabel(loc.npcType) : '';
             DOM.sceneTitle.textContent = loc.name;
             DOM.sceneNpc.textContent = npcLabel;
+            worldState.currentSceneId = loc.defaultSceneId;
+            worldState.currentNpcType = loc.npcType || 'none';
 
             // Update worldState for AI context
-            worldState.currentSceneId = loc.id;
             saveState();
 
             // RESTORE DIALOGUE
@@ -1059,7 +1075,7 @@
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
 
         // Log History
-        addToHistory('user', text, currentScene?.title, null, currentScene?.npc || 'none');
+        addToHistory('user', text, currentScene?.title, null, worldState.currentNpcType); // Use worldState.currentNpcType
         appendMessage('user', text);
 
         // Increment turn count
@@ -1209,7 +1225,7 @@
             // Log NPC response to history
             const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
             if (narrativeText) {
-                const currentNpcType = currentScene?.npc || 'none';
+                const currentNpcType = worldState.currentNpcType; // Use worldState.currentNpcType
                 addToHistory('npc', narrativeText, currentScene?.title || '未知场景', getNpcLabel(currentNpcType), currentNpcType);
             }
 
@@ -1327,7 +1343,7 @@
 
     function constructPrompt(userText) {
         const currentScene = scenes.find(s => s.id === worldState.currentSceneId);
-        const npcType = currentScene?.npc || 'none';
+        const npcType = worldState.currentNpcType || 'none';
         const npcLabel = getNpcLabel(npcType);
         const npcGender = GENDER_MAP[npcType] || '未知';
         const npcPersona = NPC_PERSONA[npcType] || NPC_PERSONA.none;
@@ -1406,7 +1422,7 @@ ${knowledgeContext}
 6. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话
 7. 【跨周目记忆处理】如果对话历史包含上一个轮回的内容，你可能会感到一种“既视感”或残留的熟悉感，但**严禁直接说出**“我记得你”、“你上局问过”之类的话。请通过细微的态度变化、似曾相识的语气、或对重复问题的微妙回应来体现这种残留记忆。`;
 
-        // Build conversation history (last 6 exchanges with THIS NPC for context)
+        // Build conversation history (STRICT isolation by npcType)
         const recentHistory = worldState.dialogHistory
             .filter(entry => (entry.role === 'user' || entry.role === 'npc') && entry.npcType === npcType)
             .slice(-6)  // Last 6 messages with this NPC
