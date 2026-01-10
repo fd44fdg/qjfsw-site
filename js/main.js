@@ -507,6 +507,9 @@
     }
 
     function startNewGame() {
+        console.log("startNewGame triggered");
+        if (!confirm('确定要开始新游戏吗？当前进度将丢失。')) return;
+
         worldState = { ...DEFAULT_STATE };
         worldState.flags = {};
         worldState.playedScenes = [];

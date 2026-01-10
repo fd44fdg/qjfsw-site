@@ -11,6 +11,24 @@ export default {
             'Access-Control-Max-Age': '86400',
         };
 
+        // Internal response helper to avoid 'this' context bugs
+        const handleResponse = async (response, isStreaming) => {
+            if (isStreaming) {
+                return new Response(response.body, {
+                    headers: {
+                        ...corsHeaders,
+                        'Content-Type': 'text/event-stream; charset=utf-8',
+                        'Cache-Control': 'no-cache',
+                        'Connection': 'keep-alive',
+                    }
+                });
+            }
+            const data = await response.json();
+            return new Response(JSON.stringify(data), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        };
+
         if (request.method === 'OPTIONS') {
             return new Response(null, { headers: corsHeaders });
         }
@@ -28,7 +46,6 @@ export default {
 
             // Strategy: Try DeepSeek First
             try {
-                // DeepSeek can be sensitive to unsupported parameters, cleaning up
                 const dsBody = {
                     model: "deepseek-chat",
                     messages: body.messages,
@@ -47,12 +64,12 @@ export default {
                 });
 
                 if (dsResponse.ok) {
-                    return this.handleResponse(dsResponse, isStreaming, corsHeaders);
+                    return handleResponse(dsResponse, isStreaming);
                 }
 
-                console.error(`DeepSeek Error: ${dsResponse.status}`);
+                console.error(`DeepSeek API Returned Error: ${dsResponse.status}`);
             } catch (err) {
-                console.error("DeepSeek Connection Failed:", err);
+                console.error("DeepSeek Connection or Fetch Failed:", err);
             }
 
             // Fallback: Try NVIDIA
@@ -61,12 +78,12 @@ export default {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': env.API_KEY // Existing env variable
+                    'Authorization': env.API_KEY
                 },
                 body: JSON.stringify(body)
             });
 
-            return this.handleResponse(nvResponse, isStreaming, corsHeaders);
+            return handleResponse(nvResponse, isStreaming);
 
         } catch (error) {
             return new Response(JSON.stringify({ error: error.message }), {
@@ -74,23 +91,5 @@ export default {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }
-    },
-
-    async handleResponse(response, isStreaming, corsHeaders) {
-        if (isStreaming) {
-            return new Response(response.body, {
-                headers: {
-                    ...corsHeaders,
-                    'Content-Type': 'text/event-stream; charset=utf-8',
-                    'Cache-Control': 'no-cache',
-                    'Connection': 'keep-alive',
-                }
-            });
-        }
-
-        const data = await response.json();
-        return new Response(JSON.stringify(data), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
     }
 };
