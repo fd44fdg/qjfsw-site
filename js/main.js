@@ -1227,6 +1227,13 @@
                     if (gameLogic.effects) {
                         applyEffects(gameLogic.effects);
                         renderState();
+
+                        // Check for auto-triggered endings (based on stats)
+                        const autoEnding = checkEndings();
+                        if (autoEnding) {
+                            triggerEnding(autoEnding);
+                            return;
+                        }
                     }
                     if (gameLogic.ending) triggerEnding(gameLogic.ending);
                     else if (gameLogic.next) setTimeout(() => advanceToNextScene(gameLogic.next), 1500);
@@ -1345,7 +1352,16 @@
 【已知情报/历史行为】(你可以基于这些信息与玩家互动，或暗示你知道这些事)
 ${knownFacts}` : "";
 
-        const systemPrompt = `${npcPersona}
+        const systemPrompt = `【NPC 相互影响机制】
+- 你并不孤立。列车上的所有 NPC 共享同一个“世界状态”和“已知情报”。
+- 虽然你可能还没亲眼见到某些事，但其他人的流言、列车气氛的改变、或是玩家身上残留的气息（如：信任度高说明玩家刚讨好过检票员；噪声高说明玩家在胡言乱语）都会传达给你。
+- 你的态度应该根据这些“间接情报”产生波动：
+  - 如果玩家刚讨好过检票员（信任度高），异常乘客可能会更厌恶、防备玩家。
+  - 如果玩家发现了真相（觉察度高），检票员的语气可能会变得更加机械和具有威胁性。
+
+【特殊角色隔离】为了保持神秘感，你不会直接看到玩家与其他 NPC 的“对话文本”，但你会通过上述的“已知情报/状态数值”感知到发生过的一切。
+
+${npcPersona}
 
 【风格】克苏鲁恐怖，简洁留白，感官细节优先。
 ${knowledgeContext}
