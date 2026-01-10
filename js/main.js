@@ -1384,7 +1384,8 @@ ${knowledgeContext}
    - 给出更有价值的暗示
    - 态度可以稍微松动
    - 但仍然不能直接说出答案
-6. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话`;
+6. 你的回答应该成为"钩子"，引发玩家好奇，而不是终结对话
+7. 【跨周目记忆处理】如果对话历史包含上一个轮回的内容，你可能会感到一种“既视感”或残留的熟悉感，但**严禁直接说出**“我记得你”、“你上局问过”之类的话。请通过细微的态度变化、似曾相识的语气、或对重复问题的微妙回应来体现这种残留记忆。`;
 
         // Build conversation history (last 6 exchanges with THIS NPC for context)
         const recentHistory = worldState.dialogHistory
