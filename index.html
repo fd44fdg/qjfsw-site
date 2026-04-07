@@ -1,89 +1,290 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>罗茂银 | 个人博客</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#f2f0e6;--text:#1a1a1a;--muted:#555;--accent:#8b0000;--border:1px solid #d3d0c4;--card-border:1px solid #1a1a1a}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:"Noto Serif SC","Songti SC","SimSun",serif;line-height:1.8;max-width:720px;margin:0 auto;padding:40px 20px;border-left:var(--border);border-right:var(--border);min-height:100vh}
-header{text-align:center;margin-bottom:40px;padding-bottom:16px;border-bottom:var(--card-border)}
-h1{font-size:1.6rem;font-weight:700;letter-spacing:2px;margin-bottom:4px}
-.sub{font-size:0.9rem;color:var(--muted);font-style:italic}
-.meta{font-size:0.75rem;color:var(--muted);margin-top:4px;font-family:monospace}
-h2{font-size:1.2rem;font-weight:700;margin-bottom:8px;border-left:3px solid var(--accent);padding-left:8px}
-p{margin:12px 0;text-align:justify;text-indent:2em;font-size:0.95rem}
-.list{list-style:none;padding:0;margin:16px 0}
-.list li{padding:8px 0;border-top:var(--border);display:flex;justify-content:space-between;align-items:center}
-.list li:last-child{border-bottom:var(--border)}
-.list a{color:var(--text);text-decoration:underline;text-decoration-style:dotted;text-decoration-color:var(--muted);font-weight:700}
-.list a:hover{color:var(--accent)}
-.tag{font-size:0.7rem;background:none;text-decoration:none;color:var(--muted) !important;letter-spacing:1px;margin-right:4px}
-footer{text-align:center;margin-top:60px;padding-top:16px;border-top:var(--card-border);font-size:.8rem;color:var(--muted)}
-hr{border:none;border-top:var(--border);margin:30px 0}
-.date{font-family:monospace;font-size:.85rem;color:var(--muted);margin-bottom:8px}
-.cta{display:inline-block;margin-top:20px;padding:8px 16px;background:var(--text);color:var(--bg);text-decoration:none;border-radius:0;font-size:.9rem}
-.cta:hover{background:var(--accent)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>罗茂银 | AI Dev</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --text: #e0e0e0;
+            --green: #00ff48;
+            --purple: #bd00ff;
+            --gray: #333;
+            --dim: #555;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* CRT 扫描线效果 */
+        body::after {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.15) 2px,
+                rgba(0,0,0,0.15) 4px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Marquee 跑马灯 */
+        .marquee-wrap {
+            background: var(--green);
+            color: var(--bg);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--text);
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+        .marquee-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll 12s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            border-left: 1px solid var(--gray);
+            border-right: 1px solid var(--gray);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Hero */
+        .hero { margin-bottom: 60px; padding-bottom: 40px; border-bottom: 2px dashed var(--gray); }
+        
+        .tag-status {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--purple); color: white;
+            font-size: 0.75rem; padding: 4px 10px;
+            margin-bottom: 16px; font-weight: 700;
+        }
+        .status-dot { width: 8px; height: 8px; background: white; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        h1.name {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 900;
+            color: var(--text);
+            line-height: 1.1;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 0 var(--purple);
+            margin-bottom: 20px;
+        }
+
+        .quote {
+            font-size: 1.1rem;
+            border-left: 4px solid var(--green);
+            padding-left: 16px;
+            color: var(--dim);
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: transparent;
+            color: var(--green);
+            border: 2px solid var(--green);
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.1s;
+            box-shadow: 6px 6px 0px var(--purple);
+        }
+        .btn:hover {
+            background: var(--green); color: var(--bg);
+            box-shadow: 2px 2px 0px var(--purple);
+            transform: translate(2px, 2px);
+        }
+
+        /* Grid */
+        .grid-title {
+            font-size: 1.2rem; margin-bottom: 20px; color: var(--green);
+            border-bottom: 1px solid var(--gray); padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2px; /* For border effect */
+            background: var(--gray);
+            border: 2px solid var(--gray);
+            margin-bottom: 60px;
+        }
+
+        .card {
+            background: var(--bg);
+            padding: 30px 20px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        /* Top Border Colors */
+        .card.c1 { border-top: 4px solid var(--green); }
+        .card.c2 { border-top: 4px solid var(--purple); }
+        .card.c3 { border-top: 4px solid var(--green); }
+        .card.c4 { border-top: 4px solid var(--purple); }
+
+        .card:hover {
+            background: var(--green);
+            color: var(--bg);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+            z-index: 2;
+        }
+        .card:hover .meta { color: var(--bg); }
+        .card:hover h2 { color: #000; }
+
+        .card .cat {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+            margin-bottom: 8px; opacity: 0.7;
+        }
+        .card h2 {
+            font-size: 1.4rem; font-weight: 800; margin-bottom: 10px;
+            transition: color 0.2s;
+        }
+        .card p { font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5; }
+        .card .meta {
+            font-size: 0.7rem; color: #555; margin-top: 16px; font-weight: 700;
+        }
+
+        /* Tech List */
+        .tech-cloud {
+            padding: 20px; border: 1px solid var(--gray); margin-bottom: 60px;
+            background: repeating-linear-gradient(45deg, #111, #111 10px, #151515 10px, #151515 20px);
+        }
+        .tech-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tech {
+            background: #222; padding: 6px 14px; font-size: 0.8rem;
+            color: #aaa; border: 1px solid #333;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center; color: #444; font-size: 0.8rem; padding-top: 40px;
+            border-top: 1px solid var(--gray);
+        }
+        .footer-links { margin-bottom: 20px; }
+        .footer-links a {
+            color: var(--green); margin: 0 12px; text-decoration: none;
+            font-weight: 700; font-size: 0.9rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            h1.name { text-shadow: 2px 2px 0 var(--purple); }
+            .container { border: none; padding: 20px; }
+            .grid { grid-template-columns: 1fr; }
+            .btn { width: 100%; text-align: center; }
+        }
+    </style>
 </head>
 <body>
-<header>
-<h1>罗茂银的博客</h1>
-<div class="sub">AI 应用开发 · Python · 全栈实践</div>
-<div class="meta">EST. 2024 | 四川</div>
-</header>
-<main>
-<article>
-<h2>关于我</h2>
-<p>我是一名热衷于 AI 应用开发的大四学生。在有限的算力下探索技术边界是我的日常。擅长使用 Python、FastAPI 和 Vue 构建全栈应用。
-我喜欢记录在开发中踩过的坑和实战心得，希望能为同路人提供一份真实的参考。</p>
-<p>目前状态：<strong>求职中（2026届）</strong>。</p>
-</article>
-<hr>
-<article>
-<h2>精选项目</h2>
-<ul class="list">
-<li>
-<div><a href="https://unsloth-6gb-finetune" target="_blank">低显存 LLM 微调实战</a><br>
-<span class="tag">Unsloth</span><span class="tag">4-bit</span><span class="tag">LoRA</span></div>
-<div class="tag">6GB → 全链路跑通</div>
-</li>
-<li>
-<div><a href="https://local-rag-knowledge-base-lab" target="_blank">本地 AI 知识库 RAG</a><br>
-<span class="tag">FastAPI</span><span class="tag">LangChain</span></div>
-<div class="tag">零依赖 / 可部署</div>
-</li>
-<li>
-<div><a href="https://medinfo" target="_blank">体检报告 AI 解读</a><br>
-<span class="tag">Vue3</span><span class="tag">LLM</span></div>
-<div class="tag">垂直落地应用</div>
-</li>
-</ul>
-<div style="text-align:center;margin-top:24px">
-<a href="https://github.com/fd44fdg" class="cta">查看完整代码库 →</a>
-</div>
-</article>
-<hr>
-<article>
-<h2>技术手记</h2>
-<div class="date">2026-04-07</div>
-<p><strong>《RTX 2060 6GB 跑微调：我的踩坑实录》</strong><br>
-从环境搭建、4-bit 量化参数调优到最终 GGUF 推理，记录下每一个报错和解决思路。这是一篇面向初学者的实战笔记。</p>
-<div style="text-align:right"><a href="#" style="font-size:.9rem;color:var(--accent)" target="_blank">阅读全文 →</a></div>
-</article>
-<hr>
-<article>
-<h2>联系</h2>
-<p>如果你正在寻找一名踏实、有技术热情的 AI 研发或后端工程师，欢迎通过以下方式与我交流。</p>
-<div style="margin-top:12px; font-size:0.9rem">
-📧 <strong>邮件:</strong> q2511622309@outlook.com &nbsp; • &nbsp; 📱 <strong>电话:</strong> 15908117608
-</div>
-</article>
-</main>
-<footer>
-© 2026 罗茂银 | 版权所有<br>
-<a href="https://github.com/fd44fdg" style="color:var(--muted);text-decoration:underline;text-decoration-style:dotted" target="_blank">GitHub</a>
-</footer>
+
+    <!-- 跑马灯 -->
+    <div class="marquee-wrap">
+        <div class="marquee-content">
+            /// AVAILABLE FOR WORK 2026 /// RTX 2060 LLM FINETUNING EXPERT /// RAG KNOWLEDGE BASE /// MULTI-AGENT SYSTEM /// 23 岁 /// 四川 /// READY TO DEPLOY /// AVAILABLE FOR INTERVIEW ///
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Hero -->
+        <div class="hero">
+            <div class="tag-status"><div class="status-dot"></div> 系统状态：求职中 (ONLINE)</div>
+            <h1 class="name">罗茂银<br>AI Dev</h1>
+            <div class="quote">
+                > "在有限算力下压榨大模型性能"<br>
+                > 拒绝纸上谈兵，专注业务落地。
+            </div>
+            <a href="#contact" class="btn">👉 发起连接 [SEND_PACKET]</a>
+        </div>
+
+        <!-- Projects -->
+        <div class="grid-title">/// _PROJECTS_ARCHIVE</div>
+        <div class="grid">
+            <div class="card c1">
+                <div class="cat">01 // LLM FINETUNE</div>
+                <h2>Unsloth 6GB Lab</h2>
+                <p>在 RTX 2060 (6GB) 上跑通 Qwen2.5-7B 微调。
+                   4-bit 量化 + LoRA 节省 64% 显存，独立完成全链路。</p>
+                <div class="meta">PYTORCH • UNSLOTH • CUDA</div>
+            </div>
+
+            <div class="card c2">
+                <div class="cat">02 // RAG SYSTEM</div>
+                <h2>Local Knowledge Base</h2>
+                <p>基于 FastAPI + FAISS 的本地问答引擎。
+                   文档解析、混合检索、引用溯源。零外部 API。</p>
+                <div class="meta">FASTAPI • VECTOR_DB</div>
+            </div>
+
+            <div class="card c3">
+                <div class="cat">03 // MULTI-AGENT</div>
+                <h2>Agent Router</h2>
+                <p>基于 LangGraph 的 Router-Specialist 架构。
+                   支持动态任务规划和 MCP 工具调用。</p>
+                <div class="meta">LANGGRAPH • MCP</div>
+            </div>
+
+            <div class="card c4">
+                <div class="cat">04 // VERTICAL APP</div>
+                <h2>Medical AI</h2>
+                <p>体检报告智能解读应用。OCR 识别 + LLM 术语解析
+                   解决"看不懂"痛点。</p>
+                <div class="meta">VUE3 • NODE • OCR</div>
+            </div>
+        </div>
+
+        <!-- Tech -->
+        <div class="grid-title">/// _SYSTEM_STACK</div>
+        <div class="tech-cloud">
+            <div class="tech-list">
+                <div class="tech">PYTHON</div><div class="tech">FLASK</div><div class="tech">FASTAPI</div><div class="tech">NODE.JS</div><div class="tech">VUE3</div><div class="tech">MYSQL</div><div class="tech">DOCKER</div><div class="tech">NGINX</div><div class="tech">UNSLOTH</div><div class="tech">PYTORCH</div><div class="tech">LANGCHAIN</div>
+            </div>
+        </div>
+
+        <!-- Contact -->
+        <div id="contact" style="padding: 40px 0;">
+            <div class="grid-title">/// _ESTABLISH_LINK</div>
+            <p style="margin-bottom: 20px; font-size: 1.2rem;">
+                "如果你正在寻找一位技术硬核、能快速落地的 AI 工程师..."
+            </p>
+            <div class="footer-links">
+                <a href="mailto:q2511622309@outlook.com">📧 EMAIL</a>
+                <a href="tel:15908117608">📱 PHONE</a>
+                <a href="https://github.com/fd44fdg" target="_blank">🔗 GITHUB</a>
+            </div>
+        </div>
+
+        <footer>
+            EST. 2024 • © Luo Maoyin • Powered by 6GB VRAM
+        </footer>
+
+    </div>
 </body>
 </html>
